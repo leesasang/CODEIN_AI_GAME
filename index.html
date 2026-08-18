@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1220" />
+    <meta
+      name="description"
+      content="CODE-IN 홍보부스용 틱택토·오목·체스 AI 대결 게임"
+    />
+    <title>CODE-IN vs AI</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="brand" id="brandButton" type="button" aria-label="게임 선택 화면으로 이동">
+          <span class="brand-mark" aria-hidden="true">&lt;/&gt;</span>
+          <span class="brand-copy">
+            <strong>CODE-IN</strong>
+            <small>AI GAME LAB</small>
+          </span>
+        </button>
+
+        <div class="topbar-actions">
+          <span class="system-badge"><i></i> AI ONLINE</span>
+          <button class="icon-button" id="soundButton" type="button" aria-label="소리 끄기" title="소리 켜기/끄기">
+            <span id="soundIcon" aria-hidden="true">♪</span>
+          </button>
+          <button class="icon-button" id="fullscreenButton" type="button" aria-label="전체 화면" title="전체 화면">
+            <span aria-hidden="true">⛶</span>
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section id="homeScreen" class="screen home-screen active" aria-labelledby="mainTitle">
+          <div class="hero-copy">
+            <span class="eyebrow"><i></i> CODE-IN BOOTH CHALLENGE</span>
+            <h1 id="mainTitle">AI를 이겨라.<br /><span>상품을 가져가라.</span></h1>
+          </div>
+
+          <div class="challenge-panel">
+            <div class="game-cards" aria-label="게임 선택">
+              <button class="game-card ttt-card" id="chooseTtt" type="button">
+                <span class="card-topline">
+                  <span class="game-number">01</span>
+                  <span class="time-chip">약 30초</span>
+                </span>
+                <span class="preview ttt-preview" aria-hidden="true">
+                  <i class="x">×</i><i></i><i class="o">○</i>
+                  <i></i><i class="x">×</i><i></i>
+                  <i class="o">○</i><i></i><i></i>
+                </span>
+                <span class="card-copy">
+                  <strong>AI 틱택토</strong>
+                </span>
+                <span class="challenge-button">도전하기 <b>→</b></span>
+              </button>
+
+              <button class="game-card omok-card" id="chooseOmok" type="button">
+                <span class="card-topline">
+                  <span class="game-number">02</span>
+                  <span class="time-chip">제한 90초</span>
+                </span>
+                <span class="preview omok-preview" aria-hidden="true">
+                  <i class="black p1"></i><i class="white p2"></i><i class="black p3"></i>
+                  <i class="white p4"></i><i class="black p5"></i><i class="white p6"></i>
+                </span>
+                <span class="card-copy">
+                  <strong>AI 오목</strong>
+                </span>
+                <span class="challenge-button">도전하기 <b>→</b></span>
+              </button>
+
+              <button class="game-card chess-card" id="chooseChess" type="button">
+                <span class="card-topline">
+                  <span class="game-number">03</span>
+                  <span class="time-chip">제한 3분</span>
+                </span>
+                <span class="preview chess-preview" aria-hidden="true">
+                  <i>♜</i><i>♞</i><i>♝</i><i>♛</i>
+                  <i>♙</i><i>♗</i><i>♘</i><i>♖</i>
+                </span>
+                <span class="card-copy">
+                  <strong>AI 체스</strong>
+                </span>
+                <span class="challenge-button">도전하기 <b>→</b></span>
+              </button>
+            </div>
+
+            <aside class="score-card" aria-label="오늘의 대결 기록">
+              <div class="score-title">
+                <div>
+                  <span>LIVE SCORE</span>
+                  <strong>오늘의 대결 기록</strong>
+                </div>
+                <button id="resetStatsButton" class="text-button" type="button">초기화</button>
+              </div>
+              <div class="score-row">
+                <div><span>인간</span><strong id="humanWins">0</strong><small>승</small></div>
+                <b>:</b>
+                <div><span>AI</span><strong id="aiWins">0</strong><small>승</small></div>
+              </div>
+              <div class="score-footer">
+                <span>무승부 <b id="draws">0</b></span>
+                <span>총 대결 <b id="totalGames">0</b></span>
+              </div>
+            </aside>
+          </div>
+
+          <div class="home-footer">
+            <span><kbd>T</kbd> 틱택토</span>
+            <span><kbd>O</kbd> 오목</span>
+            <span><kbd>C</kbd> 체스</span>
+            <span><kbd>F</kbd> 전체화면</span>
+          </div>
+        </section>
+
+        <section id="gameScreen" class="screen game-screen" aria-live="polite">
+          <div class="game-heading">
+            <button id="backButton" class="back-button" type="button">← 게임 선택</button>
+            <div class="game-heading-copy">
+              <span id="gameKicker">HUMAN VS AI</span>
+              <h2 id="gameTitle">AI 틱택토</h2>
+            </div>
+            <div class="timer-box" id="timerBox">
+              <span>남은 시간</span>
+              <strong id="timerValue">--</strong>
+            </div>
+          </div>
+
+          <div class="arena-layout">
+            <section class="arena-card">
+              <div class="turn-banner" id="turnBanner">
+                <span class="turn-dot"></span>
+                <strong id="turnText">당신의 차례입니다</strong>
+                <small id="turnHint">빈칸을 선택하세요</small>
+              </div>
+
+              <div class="board-stage">
+                <div id="tttBoard" class="ttt-board" role="grid" aria-label="틱택토 게임판"></div>
+                <div id="omokBoard" class="omok-board" role="grid" aria-label="오목 게임판"></div>
+                <div id="chessBoard" class="chess-board" role="grid" aria-label="체스 게임판"></div>
+              </div>
+            </section>
+
+            <aside class="match-panel">
+              <div class="versus-card">
+                <div class="player human-player">
+                  <span class="avatar">H</span>
+                  <div><small>CHALLENGER</small><strong>인간 대표</strong></div>
+                  <b id="humanStone">X</b>
+                </div>
+                <div class="versus-line"><span>VS</span></div>
+                <div class="player ai-player">
+                  <span class="avatar">AI</span>
+                  <div><small>CODE-IN AI</small><strong>인공지능</strong></div>
+                  <b id="aiStone">O</b>
+                </div>
+              </div>
+
+              <div class="rule-card">
+                <span>HOW TO WIN</span>
+                <h3 id="ruleTitle">가로·세로·대각선으로<br />3칸을 먼저 연결하세요.</h3>
+                <p id="ruleText">당신이 선공입니다. 파란색 X로 플레이합니다.</p>
+              </div>
+
+              <button class="secondary-button" id="restartButton" type="button">↻ 현재 게임 다시 시작</button>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="result-overlay" id="resultOverlay" role="dialog" aria-modal="true" aria-labelledby="resultTitle" hidden>
+      <div class="result-modal">
+        <span class="result-symbol" id="resultSymbol" aria-hidden="true">★</span>
+        <span class="result-kicker" id="resultKicker">HUMAN WIN</span>
+        <h2 id="resultTitle">AI를 이겼습니다!</h2>
+        <p id="resultMessage">축하합니다. 운영진에게 승리 화면을 보여주세요.</p>
+        <div class="result-stats">
+          <div><span>게임</span><strong id="resultGame">틱택토</strong></div>
+          <div><span>진행 시간</span><strong id="resultTime">00:00</strong></div>
+          <div><span>진행 수</span><strong id="resultMoves">0수</strong></div>
+        </div>
+        <div class="result-actions">
+          <button class="primary-button" id="nextPlayerButton" type="button">다음 참가자</button>
+          <button class="secondary-button" id="changeGameButton" type="button">다른 게임 선택</button>
+        </div>
+        <small class="result-tip">Enter: 다음 참가자 · Esc: 게임 선택</small>
+      </div>
+    </div>
+
+    <script src="ai.js"></script>
+    <script src="chess.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
