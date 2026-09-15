@@ -214,9 +214,9 @@
       elements.humanStone.textContent = "●";
       elements.aiStone.textContent = "○";
       elements.ruleTitle.innerHTML = "가로·세로·대각선으로<br>5개의 돌을 연결하세요.";
-      elements.ruleText.textContent = "당신이 흑돌로 선공합니다. 제한 시간은 90초입니다.";
+      elements.ruleText.textContent = "당신이 흑돌로 선공합니다. 제한 시간은 2분입니다.";
       renderOmok();
-      startCountdown(90);
+      startCountdown(120);
     } else {
       state.chess = Chess.createInitialState();
       elements.gameKicker.textContent = "8 × 8 CHESS CHALLENGE";
@@ -224,9 +224,9 @@
       elements.humanStone.textContent = "♙";
       elements.aiStone.textContent = "♟";
       elements.ruleTitle.innerHTML = "AI의 킹을<br>체크메이트하세요.";
-      elements.ruleText.textContent = "당신이 백으로 선공합니다. 제한 시간은 3분입니다.";
+      elements.ruleText.textContent = "당신이 백으로 선공합니다. 제한 시간은 5분입니다.";
       renderChess();
-      startCountdown(180);
+      startCountdown(300);
     }
 
     setTurn("human");
