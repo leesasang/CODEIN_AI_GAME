@@ -1934,29 +1934,527 @@ button:focus-visible {
       .sort((a, b) => b.score - a.score);
   }
 
+  const OMOK_WIN_SCORE = 1_000_000_000;
+  const OMOK_LINE_RADIUS = 5;
+  const OMOK_OPEN_THREE_PATTERNS = ["01110", "010110", "011010"];
+
+  function omokBoardKey(board) {
+    return board.map((row) => row.join("")).join("");
+  }
+
+  function lineThroughMove(board, row, col, dr, dc, player) {
+    let line = "";
+    for (let offset = -OMOK_LINE_RADIUS; offset <= OMOK_LINE_RADIUS; offset += 1) {
+      const r = row + dr * offset;
+      const c = col + dc * offset;
+      if (!isInside(board, r, c) || board[r][c] === (player === 1 ? 2 : 1)) {
+        line += "2";
+      } else if (board[r][c] === player) {
+        line += "1";
+      } else {
+        line += "0";
+      }
+    }
+    return line;
+  }
+
+  function patternPassesCenter(line, pattern) {
+    const center = OMOK_LINE_RADIUS;
+    let index = line.indexOf(pattern);
+    while (index !== -1) {
+      if (index <= center && center < index + pattern.length) return true;
+      index = line.indexOf(pattern, index + 1);
+    }
+    return false;
+  }
+
+  function createdOmokPatternStats(board, row, col, player) {
+    const stats = {
+      openFours: 0,
+      fourPoints: 0,
+      openThrees: 0,
+      softThrees: 0,
+      openTwos: 0,
+    };
+
+    for (const [dr, dc] of DIRECTIONS) {
+      const line = lineThroughMove(board, row, col, dr, dc, player);
+      const center = OMOK_LINE_RADIUS;
+      const winningOffsets = new Set();
+      let hasSoftThree = false;
+      let hasOpenTwo = false;
+
+      if (patternPassesCenter(line, "011110")) stats.openFours += 1;
+      if (OMOK_OPEN_THREE_PATTERNS.some((pattern) => patternPassesCenter(line, pattern))) {
+        stats.openThrees += 1;
+      }
+
+      for (let start = 0; start <= line.length - 5; start += 1) {
+        const end = start + 5;
+        if (!(start <= center && center < end)) continue;
+        const window = line.slice(start, end);
+        if (window.includes("2")) continue;
+        const stones = [...window].filter((cell) => cell === "1").length;
+        if (stones === 4) {
+          winningOffsets.add(start + window.indexOf("0"));
+        } else if (stones === 3) {
+          hasSoftThree = true;
+        } else if (stones === 2) {
+          hasOpenTwo = true;
+        }
+      }
+
+      stats.fourPoints += winningOffsets.size;
+      if (hasSoftThree) stats.softThrees += 1;
+      if (hasOpenTwo) stats.openTwos += 1;
+    }
+
+    return stats;
+  }
+
+  function quickPlacedOmokScore(board, row, col, player) {
+    if (checkOmokWin(board, row, col, player).won) return OMOK_WIN_SCORE;
+    const stats = createdOmokPatternStats(board, row, col, player);
+    const contiguous = getPatternProfile(board, row, col, player);
+    return (
+      stats.openFours * 85_000_000
+      + stats.fourPoints * 13_000_000
+      + stats.openThrees * 2_600_000
+      + stats.softThrees * 170_000
+      + stats.openTwos * 14_000
+      + contiguous.score
+      + getCompoundPatternBonus(contiguous)
+    );
+  }
+
+  function analyzePlacedOmokMove(board, row, col, player) {
+    const won = checkOmokWin(board, row, col, player).won;
+    if (won) {
+      return {
+        won: true,
+        winningReplies: [],
+        stats: createdOmokPatternStats(board, row, col, player),
+        forcingRank: 6,
+        score: OMOK_WIN_SCORE,
+      };
+    }
+
+    const replies = immediateOmokMoves(board, player, candidateOmokMoves(board));
+    const stats = createdOmokPatternStats(board, row, col, player);
+    let forcingRank = 0;
+    if (replies.length >= 2) forcingRank = 5;
+    else if (replies.length === 1 && stats.openThrees >= 1) forcingRank = 4;
+    else if (replies.length === 1) forcingRank = 3;
+    else if (stats.openThrees >= 2) forcingRank = 4;
+    else if (stats.openThrees === 1) forcingRank = 2;
+    else if (stats.softThrees >= 1) forcingRank = 1;
+
+    return {
+      won: false,
+      winningReplies: replies,
+      stats,
+      forcingRank,
+      score:
+        replies.length * 35_000_000
+        + stats.openFours * 60_000_000
+        + stats.openThrees * 4_000_000
+        + stats.softThrees * 220_000
+        + stats.openTwos * 18_000
+        + quickPlacedOmokScore(board, row, col, player),
+    };
+  }
+
+  function rankStrongOmokMoves(board, candidates, player, opponent, limit = candidates.length) {
+    const center = (board.length - 1) / 2;
+    return candidates
+      .map(([row, col]) => {
+        board[row][col] = player;
+        const attack = analyzePlacedOmokMove(board, row, col, player);
+        board[row][col] = opponent;
+        const defense = analyzePlacedOmokMove(board, row, col, opponent);
+        board[row][col] = 0;
+        return {
+          row,
+          col,
+          attack,
+          defense,
+          centerDistance: Math.abs(row - center) + Math.abs(col - center),
+          score:
+            attack.score
+            + defense.score * 1.42
+            + scoreOmokCell(board, row, col, player, opponent) * 0.18,
+        };
+      })
+      .sort((a, b) => (
+        b.score - a.score
+        || b.defense.forcingRank - a.defense.forcingRank
+        || b.attack.forcingRank - a.attack.forcingRank
+        || a.centerDistance - b.centerDistance
+        || a.row - b.row
+        || a.col - b.col
+      ))
+      .slice(0, limit);
+  }
+
+  function listFourThreatMoves(board, attacker, defender) {
+    const candidates = candidateOmokMoves(board);
+    const moves = [];
+
+    for (const [row, col] of candidates) {
+      board[row][col] = attacker;
+      const won = checkOmokWin(board, row, col, attacker).won;
+      const nextCandidates = candidateOmokMoves(board);
+      const attackerWins = won ? [] : immediateOmokMoves(board, attacker, nextCandidates);
+      const defenderWins = won ? [] : immediateOmokMoves(board, defender, nextCandidates);
+      const score = quickPlacedOmokScore(board, row, col, attacker);
+      board[row][col] = 0;
+
+      if (won || (attackerWins.length && !defenderWins.length)) {
+        moves.push({ row, col, won, attackerWins, score });
+      }
+    }
+
+    return moves.sort((a, b) => (
+      Number(b.won) - Number(a.won)
+      || b.attackerWins.length - a.attackerWins.length
+      || b.score - a.score
+      || a.row - b.row
+      || a.col - b.col
+    ));
+  }
+
+  function canForceFourWin(board, attacker, defender, turnsLeft, context) {
+    context.nodes += 1;
+    if (context.nodes > context.maxNodes || turnsLeft <= 0) return false;
+
+    const candidates = candidateOmokMoves(board);
+    if (!candidates.length) return false;
+    if (immediateOmokMoves(board, attacker, candidates).length) return true;
+    if (immediateOmokMoves(board, defender, candidates).length) return false;
+
+    const key = `${turnsLeft}:${attacker}:${omokBoardKey(board)}`;
+    if (context.memo.has(key)) return context.memo.get(key);
+
+    const moves = listFourThreatMoves(board, attacker, defender);
+    for (const move of moves) {
+      board[move.row][move.col] = attacker;
+      if (move.won) {
+        board[move.row][move.col] = 0;
+        context.memo.set(key, true);
+        return true;
+      }
+
+      const nextCandidates = candidateOmokMoves(board);
+      const defenderWins = immediateOmokMoves(board, defender, nextCandidates);
+      const attackerWins = immediateOmokMoves(board, attacker, nextCandidates);
+      let forced = false;
+
+      if (!defenderWins.length && attackerWins.length >= 2) {
+        forced = true;
+      } else if (!defenderWins.length && attackerWins.length === 1) {
+        const [blockRow, blockCol] = attackerWins[0];
+        board[blockRow][blockCol] = defender;
+        const defenderWon = checkOmokWin(board, blockRow, blockCol, defender).won;
+        if (!defenderWon) {
+          forced = canForceFourWin(
+            board,
+            attacker,
+            defender,
+            turnsLeft - 1,
+            context,
+          );
+        }
+        board[blockRow][blockCol] = 0;
+      }
+
+      board[move.row][move.col] = 0;
+      if (forced) {
+        context.memo.set(key, true);
+        return true;
+      }
+    }
+
+    context.memo.set(key, false);
+    return false;
+  }
+
+  function findForcingFourWins(board, attacker, defender, maxTurns, maxNodes = 24_000) {
+    const context = { nodes: 0, maxNodes, memo: new Map() };
+    const winningMoves = [];
+    for (const move of listFourThreatMoves(board, attacker, defender)) {
+      board[move.row][move.col] = attacker;
+      let forced = move.won;
+      if (!forced) {
+        const candidates = candidateOmokMoves(board);
+        const defenderWins = immediateOmokMoves(board, defender, candidates);
+        const attackerWins = immediateOmokMoves(board, attacker, candidates);
+        if (!defenderWins.length && attackerWins.length >= 2) {
+          forced = true;
+        } else if (!defenderWins.length && attackerWins.length === 1) {
+          const [blockRow, blockCol] = attackerWins[0];
+          board[blockRow][blockCol] = defender;
+          if (!checkOmokWin(board, blockRow, blockCol, defender).won) {
+            forced = canForceFourWin(
+              board,
+              attacker,
+              defender,
+              maxTurns - 1,
+              context,
+            );
+          }
+          board[blockRow][blockCol] = 0;
+        }
+      }
+      board[move.row][move.col] = 0;
+      if (forced) winningMoves.push(move);
+      if (context.nodes > context.maxNodes) break;
+    }
+    return winningMoves;
+  }
+
+  function rankOmokTreeMoves(board, player, opponent, limit) {
+    const candidates = candidateOmokMoves(board);
+    if (!candidates.length) return [];
+    const wins = immediateOmokMoves(board, player, candidates);
+    if (wins.length) return wins.map(([row, col]) => ({ row, col, score: OMOK_WIN_SCORE }));
+    const blocks = immediateOmokMoves(board, opponent, candidates);
+    const pool = blocks.length ? blocks : candidates;
+    const center = (board.length - 1) / 2;
+
+    return pool
+      .map(([row, col]) => {
+        board[row][col] = player;
+        const attack = quickPlacedOmokScore(board, row, col, player);
+        board[row][col] = opponent;
+        const defense = quickPlacedOmokScore(board, row, col, opponent);
+        board[row][col] = 0;
+        return {
+          row,
+          col,
+          score:
+            attack
+            + defense * 1.32
+            + scoreOmokCell(board, row, col, player, opponent) * 0.12,
+          centerDistance: Math.abs(row - center) + Math.abs(col - center),
+        };
+      })
+      .sort((a, b) => (
+        b.score - a.score
+        || a.centerDistance - b.centerDistance
+        || a.row - b.row
+        || a.col - b.col
+      ))
+      .slice(0, blocks.length ? pool.length : limit);
+  }
+
+  function evaluateStrongOmokPosition(board, ai, human) {
+    const candidates = candidateOmokMoves(board);
+    if (!candidates.length) return 0;
+    const aiScores = [];
+    const humanScores = [];
+
+    for (const [row, col] of candidates) {
+      board[row][col] = ai;
+      aiScores.push(quickPlacedOmokScore(board, row, col, ai));
+      board[row][col] = human;
+      humanScores.push(quickPlacedOmokScore(board, row, col, human));
+      board[row][col] = 0;
+    }
+
+    aiScores.sort((a, b) => b - a);
+    humanScores.sort((a, b) => b - a);
+    return (
+      (aiScores[0] || 0)
+      + (aiScores[1] || 0) * 0.52
+      + (aiScores[2] || 0) * 0.22
+      - (humanScores[0] || 0) * 1.3
+      - (humanScores[1] || 0) * 0.68
+      - (humanScores[2] || 0) * 0.3
+    );
+  }
+
+  function searchStrongOmok(
+    board,
+    depth,
+    maximizing,
+    ai,
+    human,
+    alpha,
+    beta,
+    lastMove,
+    extensionLeft,
+    context,
+  ) {
+    context.nodes += 1;
+    if (lastMove && checkOmokWin(
+      board,
+      lastMove.row,
+      lastMove.col,
+      lastMove.player,
+    ).won) {
+      return lastMove.player === ai
+        ? OMOK_WIN_SCORE + depth * 10_000
+        : -OMOK_WIN_SCORE - depth * 10_000;
+    }
+    if (context.nodes > context.maxNodes) {
+      return evaluateStrongOmokPosition(board, ai, human);
+    }
+
+    const player = maximizing ? ai : human;
+    const opponent = maximizing ? human : ai;
+    const candidates = candidateOmokMoves(board);
+    if (!candidates.length) return 0;
+
+    const ownWins = immediateOmokMoves(board, player, candidates);
+    if (ownWins.length) {
+      return player === ai ? OMOK_WIN_SCORE + depth : -OMOK_WIN_SCORE - depth;
+    }
+
+    const opponentWins = immediateOmokMoves(board, opponent, candidates);
+    if (opponentWins.length >= 2) {
+      return opponent === ai ? OMOK_WIN_SCORE / 2 + depth : -OMOK_WIN_SCORE / 2 - depth;
+    }
+
+    let nextDepth = depth;
+    let nextExtension = extensionLeft;
+    if (depth <= 0) {
+      if (opponentWins.length === 1 && extensionLeft > 0) {
+        nextExtension -= 1;
+      } else {
+        return evaluateStrongOmokPosition(board, ai, human);
+      }
+    } else {
+      nextDepth -= 1;
+    }
+
+    const key = `${depth}:${extensionLeft}:${maximizing ? 1 : 0}:${omokBoardKey(board)}`;
+    if (context.cache.has(key)) return context.cache.get(key);
+
+    const limit = depth >= 3 ? 6 : depth >= 1 ? 5 : 4;
+    const moves = opponentWins.length === 1
+      ? opponentWins.map(([row, col]) => ({ row, col, score: 0 }))
+      : rankOmokTreeMoves(board, player, opponent, limit);
+    let best = maximizing ? -Infinity : Infinity;
+    let pruned = false;
+
+    for (const move of moves) {
+      board[move.row][move.col] = player;
+      const score = searchStrongOmok(
+        board,
+        nextDepth,
+        !maximizing,
+        ai,
+        human,
+        alpha,
+        beta,
+        { row: move.row, col: move.col, player },
+        nextExtension,
+        context,
+      );
+      board[move.row][move.col] = 0;
+
+      if (maximizing) {
+        best = Math.max(best, score);
+        alpha = Math.max(alpha, best);
+      } else {
+        best = Math.min(best, score);
+        beta = Math.min(beta, best);
+      }
+      if (beta <= alpha) {
+        pruned = true;
+        break;
+      }
+    }
+
+    if (!pruned) context.cache.set(key, best);
+    return best;
+  }
+
   /**
-   * 11x11 축제용 오목 AI.
-   * 즉시 승리와 방어를 우선하고 복합 패턴과 다음 수의 위협을 계산해 최고점 수만 선택한다.
+   * 11x11 오목 AI.
+   * 끊어진 3·4목까지 판정하고, 연속 4목 강제승리 수순과 기본 5수 탐색을 결합한다.
    */
   function chooseOmokMove(inputBoard, ai = 2, human = 1) {
     const board = inputBoard.map((row) => [...row]);
     const candidates = candidateOmokMoves(board);
     if (!candidates.length) return null;
+    const stoneCount = board.reduce(
+      (total, row) => total + row.filter(Boolean).length,
+      0,
+    );
 
     const wins = immediateOmokMoves(board, ai, candidates);
     if (wins.length) {
-      const winningChoices = rankOmokCandidates(board, wins, ai, human);
+      const winningChoices = rankStrongOmokMoves(board, wins, ai, human);
       return [winningChoices[0].row, winningChoices[0].col];
     }
 
     const blocks = immediateOmokMoves(board, human, candidates);
     if (blocks.length) {
-      const blockingChoices = rankOmokCandidates(board, blocks, ai, human);
+      const blockingChoices = rankStrongOmokMoves(board, blocks, ai, human);
       return [blockingChoices[0].row, blockingChoices[0].col];
     }
 
-    const ranked = rankOmokCandidates(board, candidates, ai, human);
-    const selected = ranked[0];
+    const aiForcingWins = stoneCount >= 5
+      ? findForcingFourWins(board, ai, human, 7)
+      : [];
+    if (aiForcingWins.length) {
+      return [aiForcingWins[0].row, aiForcingWins[0].col];
+    }
+
+    const humanForcingStarts = stoneCount >= 5
+      ? findForcingFourWins(board, human, ai, 6)
+      : [];
+    const rootLimit = stoneCount < 5 ? 10 : 14;
+    const searchDepth = stoneCount < 5 ? 3 : 4;
+    const ranked = rankStrongOmokMoves(board, candidates, ai, human, rootLimit);
+    const rootMoves = [];
+    const seen = new Set();
+    for (const move of [...humanForcingStarts, ...ranked]) {
+      const key = `${move.row},${move.col}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      rootMoves.push(move);
+    }
+
+    const context = { nodes: 0, maxNodes: 120_000, cache: new Map() };
+    let selected = rootMoves[0] || ranked[0];
+    let bestScore = -Infinity;
+
+    for (const move of rootMoves) {
+      board[move.row][move.col] = ai;
+      const humanVcf = canForceFourWin(
+        board,
+        human,
+        ai,
+        6,
+        { nodes: 0, maxNodes: 12_000, memo: new Map() },
+      );
+      let score = humanVcf
+        ? -OMOK_WIN_SCORE * 0.75
+        : searchStrongOmok(
+          board,
+          searchDepth,
+          false,
+          ai,
+          human,
+          -Infinity,
+          Infinity,
+          { row: move.row, col: move.col, player: ai },
+          2,
+          context,
+        );
+      board[move.row][move.col] = 0;
+
+      const rankedMove = ranked.find((candidate) => (
+        candidate.row === move.row && candidate.col === move.col
+      ));
+      score += (rankedMove?.score || move.score || 0) * 0.015;
+      if (score > bestScore) {
+        bestScore = score;
+        selected = move;
+      }
+    }
 
     return [selected.row, selected.col];
   }
