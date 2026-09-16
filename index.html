@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#ffffff" />
     <meta
       name="description"
-      content="CODE-IN 홍보부스용 틱택토·오목·체스 AI 대결 게임"
+      content="CODE-IN 홍보부스용 틱택토·오목·체스·4목 AI 대결 게임"
     />
     <title>CODE-IN vs AI</title>
     <link rel="stylesheet" href="styles.css" />
@@ -89,6 +89,22 @@
                 </span>
                 <span class="challenge-button">도전하기 <b>→</b></span>
               </button>
+
+              <button class="game-card connect4-card" id="chooseConnect4" type="button">
+                <span class="card-topline">
+                  <span class="game-number">04</span>
+                  <span class="time-chip">제한 90초</span>
+                </span>
+                <span class="preview connect4-preview" aria-hidden="true">
+                  <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                  <i></i><i></i><i></i><i></i><i></i><i class="ai"></i><i></i>
+                  <i></i><i class="human"></i><i class="ai"></i><i class="human"></i><i class="ai"></i><i class="human"></i><i></i>
+                </span>
+                <span class="card-copy">
+                  <strong>AI 4목</strong>
+                </span>
+                <span class="challenge-button">도전하기 <b>→</b></span>
+              </button>
             </div>
 
             <aside class="score-card" aria-label="오늘의 대결 기록">
@@ -115,6 +131,7 @@
             <span><kbd>T</kbd> 틱택토</span>
             <span><kbd>O</kbd> 오목</span>
             <span><kbd>C</kbd> 체스</span>
+            <span><kbd>4</kbd> 4목</span>
             <span><kbd>F</kbd> 전체화면</span>
           </div>
         </section>
@@ -144,6 +161,7 @@
                 <div id="tttBoard" class="ttt-board" role="grid" aria-label="틱택토 게임판"></div>
                 <div id="omokBoard" class="omok-board" role="grid" aria-label="오목 게임판"></div>
                 <div id="chessBoard" class="chess-board" role="grid" aria-label="체스 게임판"></div>
+                <div id="connect4Board" class="connect4-board" role="grid" aria-label="4목 게임판"></div>
               </div>
             </section>
 

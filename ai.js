@@ -14,6 +14,10 @@
     [1, -1],
   ];
 
+  const CONNECT4_ROWS = 6;
+  const CONNECT4_COLS = 7;
+  const CONNECT4_MOVE_ORDER = [3, 2, 4, 1, 5, 0, 6];
+
   function getTicTacToeResult(board) {
     for (const line of TTT_WINS) {
       const [a, b, c] = line;
@@ -322,6 +326,203 @@
     return [selected.row, selected.col];
   }
 
+  function isConnect4Inside(board, row, col) {
+    return row >= 0 && col >= 0 && row < board.length && col < board[0].length;
+  }
+
+  function getConnect4ValidColumns(board) {
+    return CONNECT4_MOVE_ORDER.filter((col) => board[0][col] === 0);
+  }
+
+  function dropConnect4Disc(board, col, player) {
+    if (col < 0 || col >= board[0].length || board[0][col] !== 0) return null;
+    for (let row = board.length - 1; row >= 0; row -= 1) {
+      if (board[row][col] === 0) {
+        board[row][col] = player;
+        return row;
+      }
+    }
+    return null;
+  }
+
+  function checkConnect4Win(board, row, col, player) {
+    if (!isConnect4Inside(board, row, col) || board[row][col] !== player) {
+      return { won: false, cells: [] };
+    }
+
+    for (const [dr, dc] of DIRECTIONS) {
+      const cells = [[row, col]];
+      for (const sign of [-1, 1]) {
+        let nextRow = row + dr * sign;
+        let nextCol = col + dc * sign;
+        while (isConnect4Inside(board, nextRow, nextCol) && board[nextRow][nextCol] === player) {
+          cells.push([nextRow, nextCol]);
+          nextRow += dr * sign;
+          nextCol += dc * sign;
+        }
+      }
+      if (cells.length >= 4) {
+        cells.sort((a, b) => (a[0] - b[0]) || (a[1] - b[1]));
+        return { won: true, cells };
+      }
+    }
+
+    return { won: false, cells: [] };
+  }
+
+  function scoreConnect4Window(values, ai, human) {
+    const aiCount = values.filter((value) => value === ai).length;
+    const humanCount = values.filter((value) => value === human).length;
+    const emptyCount = 4 - aiCount - humanCount;
+    if (aiCount && humanCount) return 0;
+    if (aiCount === 4) return 1_000_000;
+    if (humanCount === 4) return -1_000_000;
+    if (aiCount === 3 && emptyCount === 1) return 850;
+    if (aiCount === 2 && emptyCount === 2) return 70;
+    if (aiCount === 1 && emptyCount === 3) return 8;
+    if (humanCount === 3 && emptyCount === 1) return -1_050;
+    if (humanCount === 2 && emptyCount === 2) return -90;
+    if (humanCount === 1 && emptyCount === 3) return -10;
+    return 0;
+  }
+
+  function evaluateConnect4Board(board, ai, human) {
+    const rows = board.length;
+    const cols = board[0].length;
+    let score = 0;
+
+    for (let row = 0; row < rows; row += 1) {
+      if (board[row][3] === ai) score += 24;
+      if (board[row][3] === human) score -= 24;
+    }
+
+    const scoreWindow = (coordinates) => {
+      score += scoreConnect4Window(
+        coordinates.map(([row, col]) => board[row][col]),
+        ai,
+        human,
+      );
+    };
+
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col <= cols - 4; col += 1) {
+        scoreWindow([[row, col], [row, col + 1], [row, col + 2], [row, col + 3]]);
+      }
+    }
+    for (let row = 0; row <= rows - 4; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
+        scoreWindow([[row, col], [row + 1, col], [row + 2, col], [row + 3, col]]);
+      }
+    }
+    for (let row = 0; row <= rows - 4; row += 1) {
+      for (let col = 0; col <= cols - 4; col += 1) {
+        scoreWindow([[row, col], [row + 1, col + 1], [row + 2, col + 2], [row + 3, col + 3]]);
+        scoreWindow([[row + 3, col], [row + 2, col + 1], [row + 1, col + 2], [row, col + 3]]);
+      }
+    }
+
+    return score;
+  }
+
+  /**
+   * 7x6 4목 AI.
+   * 중앙 우선 수 정렬과 알파–베타 탐색으로 고정 깊이까지 계산하며 무작위 수를 두지 않는다.
+   */
+  function chooseConnect4Move(inputBoard, ai = 2, human = 1, options = {}) {
+    const board = inputBoard.map((row) => [...row]);
+    const validColumns = getConnect4ValidColumns(board);
+    if (!validColumns.length) return null;
+
+    for (const col of validColumns) {
+      const row = dropConnect4Disc(board, col, ai);
+      const won = checkConnect4Win(board, row, col, ai).won;
+      board[row][col] = 0;
+      if (won) return col;
+    }
+
+    for (const col of validColumns) {
+      const row = dropConnect4Disc(board, col, human);
+      const won = checkConnect4Win(board, row, col, human).won;
+      board[row][col] = 0;
+      if (won) return col;
+    }
+
+    const maxDepth = Number.isInteger(options.maxDepth) ? options.maxDepth : 7;
+    const cache = new Map();
+
+    function search(depth, maximizing, alpha, beta, lastMove) {
+      if (lastMove) {
+        const result = checkConnect4Win(
+          board,
+          lastMove.row,
+          lastMove.col,
+          lastMove.player,
+        );
+        if (result.won) {
+          return lastMove.player === ai ? 10_000_000 + depth : -10_000_000 - depth;
+        }
+      }
+
+      const columns = getConnect4ValidColumns(board);
+      if (!columns.length) return 0;
+      if (depth === 0) return evaluateConnect4Board(board, ai, human);
+
+      const key = `${depth}:${maximizing ? 1 : 0}:${board.map((row) => row.join("")).join("")}`;
+      if (cache.has(key)) return cache.get(key);
+
+      let best = maximizing ? -Infinity : Infinity;
+      let pruned = false;
+      const player = maximizing ? ai : human;
+
+      for (const col of columns) {
+        const row = dropConnect4Disc(board, col, player);
+        const value = search(
+          depth - 1,
+          !maximizing,
+          alpha,
+          beta,
+          { row, col, player },
+        );
+        board[row][col] = 0;
+
+        if (maximizing) {
+          best = Math.max(best, value);
+          alpha = Math.max(alpha, best);
+        } else {
+          best = Math.min(best, value);
+          beta = Math.min(beta, best);
+        }
+        if (beta <= alpha) {
+          pruned = true;
+          break;
+        }
+      }
+
+      if (!pruned) cache.set(key, best);
+      return best;
+    }
+
+    let selectedColumn = validColumns[0];
+    let bestScore = -Infinity;
+    for (const col of validColumns) {
+      const row = dropConnect4Disc(board, col, ai);
+      const score = search(
+        maxDepth - 1,
+        false,
+        -Infinity,
+        Infinity,
+        { row, col, player: ai },
+      );
+      board[row][col] = 0;
+      if (score > bestScore) {
+        bestScore = score;
+        selectedColumn = col;
+      }
+    }
+
+    return selectedColumn;
+  }
+
   global.CodeInAI = Object.freeze({
     TTT_WINS,
     getTicTacToeResult,
@@ -329,5 +530,11 @@
     checkOmokWin,
     chooseOmokMove,
     candidateOmokMoves,
+    CONNECT4_ROWS,
+    CONNECT4_COLS,
+    getConnect4ValidColumns,
+    dropConnect4Disc,
+    checkConnect4Win,
+    chooseConnect4Move,
   });
 })(typeof window !== "undefined" ? window : globalThis);

@@ -4,6 +4,8 @@
   const AI = window.CodeInAI;
   const Chess = window.CodeInChess;
   const OMOK_SIZE = 11;
+  const CONNECT4_ROWS = AI.CONNECT4_ROWS;
+  const CONNECT4_COLS = AI.CONNECT4_COLS;
   const STORAGE_KEY = "codein-ai-booth-stats-v1";
   const SOUND_KEY = "codein-ai-booth-sound-v1";
 
@@ -13,6 +15,7 @@
     chooseTtt: document.getElementById("chooseTtt"),
     chooseOmok: document.getElementById("chooseOmok"),
     chooseChess: document.getElementById("chooseChess"),
+    chooseConnect4: document.getElementById("chooseConnect4"),
     brandButton: document.getElementById("brandButton"),
     backButton: document.getElementById("backButton"),
     restartButton: document.getElementById("restartButton"),
@@ -34,6 +37,7 @@
     tttBoard: document.getElementById("tttBoard"),
     omokBoard: document.getElementById("omokBoard"),
     chessBoard: document.getElementById("chessBoard"),
+    connect4Board: document.getElementById("connect4Board"),
     humanStone: document.getElementById("humanStone"),
     aiStone: document.getElementById("aiStone"),
     ruleTitle: document.getElementById("ruleTitle"),
@@ -164,6 +168,21 @@
       cell.addEventListener("click", () => handleChessClick(index));
       elements.chessBoard.appendChild(cell);
     }
+
+    for (let row = 0; row < CONNECT4_ROWS; row += 1) {
+      for (let col = 0; col < CONNECT4_COLS; col += 1) {
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "connect4-cell";
+        cell.dataset.row = String(row);
+        cell.dataset.col = String(col);
+        cell.setAttribute("role", "gridcell");
+        cell.dataset.baseLabel = `4목 ${row + 1}행 ${col + 1}열`;
+        cell.setAttribute("aria-label", `${col + 1}번째 세로줄에 원판 놓기`);
+        cell.addEventListener("click", () => handleConnect4Click(col));
+        elements.connect4Board.appendChild(cell);
+      }
+    }
   }
 
   function showHome() {
@@ -196,6 +215,7 @@
     elements.tttBoard.classList.toggle("active", game === "ttt");
     elements.omokBoard.classList.toggle("active", game === "omok");
     elements.chessBoard.classList.toggle("active", game === "chess");
+    elements.connect4Board.classList.toggle("active", game === "connect4");
 
     if (game === "ttt") {
       state.board = Array(9).fill(null);
@@ -217,6 +237,16 @@
       elements.ruleText.textContent = "당신이 흑돌로 선공합니다. 제한 시간은 2분입니다.";
       renderOmok();
       startCountdown(120);
+    } else if (game === "connect4") {
+      state.board = Array.from({ length: CONNECT4_ROWS }, () => Array(CONNECT4_COLS).fill(0));
+      elements.gameKicker.textContent = "7 × 6 CONNECT FOUR CHALLENGE";
+      elements.gameTitle.textContent = "AI 4목";
+      elements.humanStone.textContent = "🔴";
+      elements.aiStone.textContent = "🟡";
+      elements.ruleTitle.innerHTML = "가로·세로·대각선으로<br>4개의 원판을 연결하세요.";
+      elements.ruleText.textContent = "세로줄을 선택하면 원판이 아래부터 쌓입니다. 제한 시간은 90초입니다.";
+      renderConnect4();
+      startCountdown(90);
     } else {
       state.chess = Chess.createInitialState();
       elements.gameKicker.textContent = "8 × 8 CHESS CHALLENGE";
@@ -272,7 +302,9 @@
         ? "빈칸을 선택하세요"
         : state.currentGame === "omok"
           ? "교차점에 흑돌을 놓으세요"
-          : "백 기물을 선택하세요";
+          : state.currentGame === "connect4"
+            ? "원판을 떨어뜨릴 세로줄을 선택하세요"
+            : "백 기물을 선택하세요";
     updateBoardAvailability();
   }
 
@@ -294,6 +326,11 @@
         const selectablePiece = piece?.[0] === Chess.COLORS.WHITE;
         const selectableTarget = state.chessSelected !== null && targetSquares.has(index);
         cell.disabled = !state.active || state.aiThinking || (!selectablePiece && !selectableTarget);
+      });
+    } else if (state.currentGame === "connect4") {
+      [...elements.connect4Board.children].forEach((cell) => {
+        const col = Number(cell.dataset.col);
+        cell.disabled = !state.active || state.aiThinking || state.board[0][col] !== 0;
       });
     }
   }
@@ -438,6 +475,81 @@
     updateBoardAvailability();
   }
 
+  function handleConnect4Click(col) {
+    if (!state.active || state.aiThinking || state.currentGame !== "connect4") return;
+    const row = AI.dropConnect4Disc(state.board, col, 1);
+    if (row === null) return;
+
+    state.lastMove = { row, col, player: 1 };
+    state.moves += 1;
+    playSound("move");
+    renderConnect4();
+
+    const result = AI.checkConnect4Win(state.board, row, col, 1);
+    if (result.won) {
+      finishGame("human", "win", result.cells);
+      return;
+    }
+    if (!AI.getConnect4ValidColumns(state.board).length) {
+      finishGame("draw", "draw", []);
+      return;
+    }
+
+    setTurn("ai");
+    state.aiTimerId = window.setTimeout(makeConnect4AiMove, 420);
+  }
+
+  function makeConnect4AiMove() {
+    if (!state.active || state.currentGame !== "connect4") return;
+    const col = AI.chooseConnect4Move(state.board, 2, 1, { maxDepth: 7 });
+    if (col === null) {
+      finishGame("draw", "draw", []);
+      return;
+    }
+
+    const row = AI.dropConnect4Disc(state.board, col, 2);
+    state.lastMove = { row, col, player: 2 };
+    state.moves += 1;
+    playSound("ai");
+    renderConnect4();
+
+    const result = AI.checkConnect4Win(state.board, row, col, 2);
+    if (result.won) {
+      finishGame("ai", "win", result.cells);
+      return;
+    }
+    if (!AI.getConnect4ValidColumns(state.board).length) {
+      finishGame("draw", "draw", []);
+      return;
+    }
+    setTurn("human");
+  }
+
+  function renderConnect4() {
+    [...elements.connect4Board.children].forEach((cell) => {
+      const row = Number(cell.dataset.row);
+      const col = Number(cell.dataset.col);
+      const value = state.board[row][col];
+      const isLast = state.lastMove?.row === row && state.lastMove?.col === col;
+      const isWinner = state.winningCells.some(([r, c]) => r === row && c === col);
+
+      cell.className = "connect4-cell";
+      if (value === 1) cell.classList.add("human");
+      if (value === 2) cell.classList.add("ai");
+      if (isLast) cell.classList.add("last");
+      if (isWinner) cell.classList.add("win");
+      cell.setAttribute(
+        "aria-label",
+        value === 1
+          ? `${row + 1}행 ${col + 1}열 인간 원판`
+          : value === 2
+            ? `${row + 1}행 ${col + 1}열 AI 원판`
+            : `${col + 1}번째 세로줄에 원판 놓기`,
+      );
+    });
+    updateBoardAvailability();
+  }
+
   function handleChessClick(index) {
     if (
       !state.active
@@ -554,6 +666,7 @@
 
     if (state.currentGame === "ttt") renderTicTacToe();
     else if (state.currentGame === "omok") renderOmok();
+    else if (state.currentGame === "connect4") renderConnect4();
     else renderChess();
 
     if (winner === "human") state.stats.human += 1;
@@ -578,7 +691,9 @@
       ? "틱택토"
       : state.currentGame === "omok"
         ? "오목"
-        : "체스";
+        : state.currentGame === "connect4"
+          ? "4목"
+          : "체스";
 
     elements.resultModal.className = `result-modal ${isHuman ? "win" : isDraw ? "draw" : "lose"}`;
     elements.resultSymbol.textContent = isHuman ? "★" : isDraw ? "=" : "×";
@@ -732,6 +847,7 @@
       if (key === "t") startGame("ttt");
       if (key === "o") startGame("omok");
       if (key === "c") startGame("chess");
+      if (key === "4") startGame("connect4");
       if (key === "f") toggleFullscreen();
       return;
     }
@@ -744,6 +860,7 @@
     elements.chooseTtt.addEventListener("click", () => startGame("ttt"));
     elements.chooseOmok.addEventListener("click", () => startGame("omok"));
     elements.chooseChess.addEventListener("click", () => startGame("chess"));
+    elements.chooseConnect4.addEventListener("click", () => startGame("connect4"));
     elements.brandButton.addEventListener("click", showHome);
     elements.backButton.addEventListener("click", showHome);
     elements.restartButton.addEventListener("click", () => startGame(state.currentGame));

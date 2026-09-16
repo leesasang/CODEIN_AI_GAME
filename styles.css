@@ -246,13 +246,13 @@ button:focus-visible {
 
 .game-cards {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
 }
 
 .game-card {
   position: relative;
-  min-height: 330px;
+  min-height: 300px;
   padding: 24px;
   overflow: hidden;
   text-align: left;
@@ -285,6 +285,10 @@ button:focus-visible {
 
 .chess-card::after {
   background: rgba(167, 139, 250, 0.11);
+}
+
+.connect4-card::after {
+  background: rgba(251, 191, 36, 0.13);
 }
 
 .game-card:hover {
@@ -435,6 +439,28 @@ button:focus-visible {
   background: #eff6ff;
   color: #0f172a;
 }
+
+.connect4-preview {
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 5px;
+  padding: 11px;
+  border: 1px solid #93c5fd;
+  border-radius: 16px;
+  background: #2563eb;
+  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.2);
+  transform: rotate(2deg);
+}
+
+.connect4-preview i {
+  display: block;
+  border-radius: 50%;
+  background: #f8fafc;
+  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.2);
+}
+
+.connect4-preview .human { background: #ef4444; }
+.connect4-preview .ai { background: #fbbf24; }
 
 .card-copy {
   display: flex;
@@ -765,7 +791,8 @@ button:focus-visible {
 
 .ttt-board.active,
 .omok-board.active,
-.chess-board.active {
+.chess-board.active,
+.connect4-board.active {
   display: grid;
 }
 
@@ -949,6 +976,51 @@ button:focus-visible {
   background: transparent;
   box-shadow: none;
 }
+
+.connect4-board {
+  width: min(560px, 88vw);
+  aspect-ratio: 7 / 6;
+  display: none;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: clamp(5px, 0.9vw, 9px);
+  padding: clamp(10px, 1.5vw, 16px);
+  overflow: hidden;
+  border: 1px solid #1d4ed8;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #3b82f6, #1d4ed8);
+  box-shadow: 0 22px 55px rgba(37, 99, 235, 0.22);
+}
+
+.connect4-cell {
+  position: relative;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #f8fafc;
+  box-shadow: inset 0 3px 7px rgba(15, 23, 42, 0.2);
+  cursor: pointer;
+  transition: 140ms ease;
+}
+
+.connect4-cell:not(:disabled):hover {
+  background: #dbeafe;
+  transform: translateY(-2px);
+}
+
+.connect4-cell.human {
+  background: radial-gradient(circle at 34% 28%, #fca5a5 0%, #ef4444 50%, #b91c1c 100%);
+  box-shadow: inset -4px -5px 9px rgba(127, 29, 29, 0.3), 0 4px 8px rgba(15, 23, 42, 0.18);
+}
+
+.connect4-cell.ai {
+  background: radial-gradient(circle at 34% 28%, #fde68a 0%, #fbbf24 52%, #d97706 100%);
+  box-shadow: inset -4px -5px 9px rgba(146, 64, 14, 0.25), 0 4px 8px rgba(15, 23, 42, 0.18);
+}
+
+.connect4-cell.last { animation: disc-drop 280ms cubic-bezier(0.22, 1, 0.36, 1); }
+.connect4-cell.win { box-shadow: inset 0 0 0 5px #34d399, 0 0 22px rgba(52, 211, 153, 0.85); }
 
 .match-panel {
   display: flex;
@@ -1252,6 +1324,11 @@ button:focus-visible {
   to { opacity: 1; transform: scale(1); }
 }
 
+@keyframes disc-drop {
+  from { opacity: 0.2; transform: translateY(-70%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes winning-cell {
   from { filter: brightness(1); }
   to { filter: brightness(1.45); }
@@ -1306,6 +1383,7 @@ button:focus-visible {
   .ttt-board { width: min(360px, 86vw); border-radius: 22px; }
   .omok-board { --cell-size: min(7.55vw, 32px); }
   .chess-board { width: min(360px, 86vw); border-width: 5px; }
+  .connect4-board { width: min(430px, 90vw); border-radius: 18px; }
   .match-panel { grid-template-columns: 1fr; }
   .versus-card { display: none; }
   .rule-card { padding: 17px; }
@@ -1328,6 +1406,7 @@ button:focus-visible {
   .ttt-board { width: 360px; }
   .omok-board { --cell-size: 33px; }
   .chess-board { width: 390px; }
+  .connect4-board { width: 450px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

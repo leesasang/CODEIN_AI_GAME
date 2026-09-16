@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#ffffff" />
     <meta
       name="description"
-      content="CODE-IN 홍보부스용 틱택토·오목·체스 AI 대결 게임"
+      content="CODE-IN 홍보부스용 틱택토·오목·체스·4목 AI 대결 게임"
     />
     <title>CODE-IN vs AI</title>
     <style>
@@ -258,13 +258,13 @@ button:focus-visible {
 
 .game-cards {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
 }
 
 .game-card {
   position: relative;
-  min-height: 330px;
+  min-height: 300px;
   padding: 24px;
   overflow: hidden;
   text-align: left;
@@ -297,6 +297,10 @@ button:focus-visible {
 
 .chess-card::after {
   background: rgba(167, 139, 250, 0.11);
+}
+
+.connect4-card::after {
+  background: rgba(251, 191, 36, 0.13);
 }
 
 .game-card:hover {
@@ -447,6 +451,28 @@ button:focus-visible {
   background: #eff6ff;
   color: #0f172a;
 }
+
+.connect4-preview {
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 5px;
+  padding: 11px;
+  border: 1px solid #93c5fd;
+  border-radius: 16px;
+  background: #2563eb;
+  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.2);
+  transform: rotate(2deg);
+}
+
+.connect4-preview i {
+  display: block;
+  border-radius: 50%;
+  background: #f8fafc;
+  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.2);
+}
+
+.connect4-preview .human { background: #ef4444; }
+.connect4-preview .ai { background: #fbbf24; }
 
 .card-copy {
   display: flex;
@@ -777,7 +803,8 @@ button:focus-visible {
 
 .ttt-board.active,
 .omok-board.active,
-.chess-board.active {
+.chess-board.active,
+.connect4-board.active {
   display: grid;
 }
 
@@ -961,6 +988,51 @@ button:focus-visible {
   background: transparent;
   box-shadow: none;
 }
+
+.connect4-board {
+  width: min(560px, 88vw);
+  aspect-ratio: 7 / 6;
+  display: none;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: clamp(5px, 0.9vw, 9px);
+  padding: clamp(10px, 1.5vw, 16px);
+  overflow: hidden;
+  border: 1px solid #1d4ed8;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #3b82f6, #1d4ed8);
+  box-shadow: 0 22px 55px rgba(37, 99, 235, 0.22);
+}
+
+.connect4-cell {
+  position: relative;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #f8fafc;
+  box-shadow: inset 0 3px 7px rgba(15, 23, 42, 0.2);
+  cursor: pointer;
+  transition: 140ms ease;
+}
+
+.connect4-cell:not(:disabled):hover {
+  background: #dbeafe;
+  transform: translateY(-2px);
+}
+
+.connect4-cell.human {
+  background: radial-gradient(circle at 34% 28%, #fca5a5 0%, #ef4444 50%, #b91c1c 100%);
+  box-shadow: inset -4px -5px 9px rgba(127, 29, 29, 0.3), 0 4px 8px rgba(15, 23, 42, 0.18);
+}
+
+.connect4-cell.ai {
+  background: radial-gradient(circle at 34% 28%, #fde68a 0%, #fbbf24 52%, #d97706 100%);
+  box-shadow: inset -4px -5px 9px rgba(146, 64, 14, 0.25), 0 4px 8px rgba(15, 23, 42, 0.18);
+}
+
+.connect4-cell.last { animation: disc-drop 280ms cubic-bezier(0.22, 1, 0.36, 1); }
+.connect4-cell.win { box-shadow: inset 0 0 0 5px #34d399, 0 0 22px rgba(52, 211, 153, 0.85); }
 
 .match-panel {
   display: flex;
@@ -1264,6 +1336,11 @@ button:focus-visible {
   to { opacity: 1; transform: scale(1); }
 }
 
+@keyframes disc-drop {
+  from { opacity: 0.2; transform: translateY(-70%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes winning-cell {
   from { filter: brightness(1); }
   to { filter: brightness(1.45); }
@@ -1318,6 +1395,7 @@ button:focus-visible {
   .ttt-board { width: min(360px, 86vw); border-radius: 22px; }
   .omok-board { --cell-size: min(7.55vw, 32px); }
   .chess-board { width: min(360px, 86vw); border-width: 5px; }
+  .connect4-board { width: min(430px, 90vw); border-radius: 18px; }
   .match-panel { grid-template-columns: 1fr; }
   .versus-card { display: none; }
   .rule-card { padding: 17px; }
@@ -1340,6 +1418,7 @@ button:focus-visible {
   .ttt-board { width: 360px; }
   .omok-board { --cell-size: 33px; }
   .chess-board { width: 390px; }
+  .connect4-board { width: 450px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1430,6 +1509,22 @@ button:focus-visible {
                 </span>
                 <span class="challenge-button">도전하기 <b>→</b></span>
               </button>
+
+              <button class="game-card connect4-card" id="chooseConnect4" type="button">
+                <span class="card-topline">
+                  <span class="game-number">04</span>
+                  <span class="time-chip">제한 90초</span>
+                </span>
+                <span class="preview connect4-preview" aria-hidden="true">
+                  <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                  <i></i><i></i><i></i><i></i><i></i><i class="ai"></i><i></i>
+                  <i></i><i class="human"></i><i class="ai"></i><i class="human"></i><i class="ai"></i><i class="human"></i><i></i>
+                </span>
+                <span class="card-copy">
+                  <strong>AI 4목</strong>
+                </span>
+                <span class="challenge-button">도전하기 <b>→</b></span>
+              </button>
             </div>
 
             <aside class="score-card" aria-label="오늘의 대결 기록">
@@ -1456,6 +1551,7 @@ button:focus-visible {
             <span><kbd>T</kbd> 틱택토</span>
             <span><kbd>O</kbd> 오목</span>
             <span><kbd>C</kbd> 체스</span>
+            <span><kbd>4</kbd> 4목</span>
             <span><kbd>F</kbd> 전체화면</span>
           </div>
         </section>
@@ -1485,6 +1581,7 @@ button:focus-visible {
                 <div id="tttBoard" class="ttt-board" role="grid" aria-label="틱택토 게임판"></div>
                 <div id="omokBoard" class="omok-board" role="grid" aria-label="오목 게임판"></div>
                 <div id="chessBoard" class="chess-board" role="grid" aria-label="체스 게임판"></div>
+                <div id="connect4Board" class="connect4-board" role="grid" aria-label="4목 게임판"></div>
               </div>
             </section>
 
@@ -1551,6 +1648,10 @@ button:focus-visible {
     [1, 1],
     [1, -1],
   ];
+
+  const CONNECT4_ROWS = 6;
+  const CONNECT4_COLS = 7;
+  const CONNECT4_MOVE_ORDER = [3, 2, 4, 1, 5, 0, 6];
 
   function getTicTacToeResult(board) {
     for (const line of TTT_WINS) {
@@ -1860,6 +1961,203 @@ button:focus-visible {
     return [selected.row, selected.col];
   }
 
+  function isConnect4Inside(board, row, col) {
+    return row >= 0 && col >= 0 && row < board.length && col < board[0].length;
+  }
+
+  function getConnect4ValidColumns(board) {
+    return CONNECT4_MOVE_ORDER.filter((col) => board[0][col] === 0);
+  }
+
+  function dropConnect4Disc(board, col, player) {
+    if (col < 0 || col >= board[0].length || board[0][col] !== 0) return null;
+    for (let row = board.length - 1; row >= 0; row -= 1) {
+      if (board[row][col] === 0) {
+        board[row][col] = player;
+        return row;
+      }
+    }
+    return null;
+  }
+
+  function checkConnect4Win(board, row, col, player) {
+    if (!isConnect4Inside(board, row, col) || board[row][col] !== player) {
+      return { won: false, cells: [] };
+    }
+
+    for (const [dr, dc] of DIRECTIONS) {
+      const cells = [[row, col]];
+      for (const sign of [-1, 1]) {
+        let nextRow = row + dr * sign;
+        let nextCol = col + dc * sign;
+        while (isConnect4Inside(board, nextRow, nextCol) && board[nextRow][nextCol] === player) {
+          cells.push([nextRow, nextCol]);
+          nextRow += dr * sign;
+          nextCol += dc * sign;
+        }
+      }
+      if (cells.length >= 4) {
+        cells.sort((a, b) => (a[0] - b[0]) || (a[1] - b[1]));
+        return { won: true, cells };
+      }
+    }
+
+    return { won: false, cells: [] };
+  }
+
+  function scoreConnect4Window(values, ai, human) {
+    const aiCount = values.filter((value) => value === ai).length;
+    const humanCount = values.filter((value) => value === human).length;
+    const emptyCount = 4 - aiCount - humanCount;
+    if (aiCount && humanCount) return 0;
+    if (aiCount === 4) return 1_000_000;
+    if (humanCount === 4) return -1_000_000;
+    if (aiCount === 3 && emptyCount === 1) return 850;
+    if (aiCount === 2 && emptyCount === 2) return 70;
+    if (aiCount === 1 && emptyCount === 3) return 8;
+    if (humanCount === 3 && emptyCount === 1) return -1_050;
+    if (humanCount === 2 && emptyCount === 2) return -90;
+    if (humanCount === 1 && emptyCount === 3) return -10;
+    return 0;
+  }
+
+  function evaluateConnect4Board(board, ai, human) {
+    const rows = board.length;
+    const cols = board[0].length;
+    let score = 0;
+
+    for (let row = 0; row < rows; row += 1) {
+      if (board[row][3] === ai) score += 24;
+      if (board[row][3] === human) score -= 24;
+    }
+
+    const scoreWindow = (coordinates) => {
+      score += scoreConnect4Window(
+        coordinates.map(([row, col]) => board[row][col]),
+        ai,
+        human,
+      );
+    };
+
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col <= cols - 4; col += 1) {
+        scoreWindow([[row, col], [row, col + 1], [row, col + 2], [row, col + 3]]);
+      }
+    }
+    for (let row = 0; row <= rows - 4; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
+        scoreWindow([[row, col], [row + 1, col], [row + 2, col], [row + 3, col]]);
+      }
+    }
+    for (let row = 0; row <= rows - 4; row += 1) {
+      for (let col = 0; col <= cols - 4; col += 1) {
+        scoreWindow([[row, col], [row + 1, col + 1], [row + 2, col + 2], [row + 3, col + 3]]);
+        scoreWindow([[row + 3, col], [row + 2, col + 1], [row + 1, col + 2], [row, col + 3]]);
+      }
+    }
+
+    return score;
+  }
+
+  /**
+   * 7x6 4목 AI.
+   * 중앙 우선 수 정렬과 알파–베타 탐색으로 고정 깊이까지 계산하며 무작위 수를 두지 않는다.
+   */
+  function chooseConnect4Move(inputBoard, ai = 2, human = 1, options = {}) {
+    const board = inputBoard.map((row) => [...row]);
+    const validColumns = getConnect4ValidColumns(board);
+    if (!validColumns.length) return null;
+
+    for (const col of validColumns) {
+      const row = dropConnect4Disc(board, col, ai);
+      const won = checkConnect4Win(board, row, col, ai).won;
+      board[row][col] = 0;
+      if (won) return col;
+    }
+
+    for (const col of validColumns) {
+      const row = dropConnect4Disc(board, col, human);
+      const won = checkConnect4Win(board, row, col, human).won;
+      board[row][col] = 0;
+      if (won) return col;
+    }
+
+    const maxDepth = Number.isInteger(options.maxDepth) ? options.maxDepth : 7;
+    const cache = new Map();
+
+    function search(depth, maximizing, alpha, beta, lastMove) {
+      if (lastMove) {
+        const result = checkConnect4Win(
+          board,
+          lastMove.row,
+          lastMove.col,
+          lastMove.player,
+        );
+        if (result.won) {
+          return lastMove.player === ai ? 10_000_000 + depth : -10_000_000 - depth;
+        }
+      }
+
+      const columns = getConnect4ValidColumns(board);
+      if (!columns.length) return 0;
+      if (depth === 0) return evaluateConnect4Board(board, ai, human);
+
+      const key = `${depth}:${maximizing ? 1 : 0}:${board.map((row) => row.join("")).join("")}`;
+      if (cache.has(key)) return cache.get(key);
+
+      let best = maximizing ? -Infinity : Infinity;
+      let pruned = false;
+      const player = maximizing ? ai : human;
+
+      for (const col of columns) {
+        const row = dropConnect4Disc(board, col, player);
+        const value = search(
+          depth - 1,
+          !maximizing,
+          alpha,
+          beta,
+          { row, col, player },
+        );
+        board[row][col] = 0;
+
+        if (maximizing) {
+          best = Math.max(best, value);
+          alpha = Math.max(alpha, best);
+        } else {
+          best = Math.min(best, value);
+          beta = Math.min(beta, best);
+        }
+        if (beta <= alpha) {
+          pruned = true;
+          break;
+        }
+      }
+
+      if (!pruned) cache.set(key, best);
+      return best;
+    }
+
+    let selectedColumn = validColumns[0];
+    let bestScore = -Infinity;
+    for (const col of validColumns) {
+      const row = dropConnect4Disc(board, col, ai);
+      const score = search(
+        maxDepth - 1,
+        false,
+        -Infinity,
+        Infinity,
+        { row, col, player: ai },
+      );
+      board[row][col] = 0;
+      if (score > bestScore) {
+        bestScore = score;
+        selectedColumn = col;
+      }
+    }
+
+    return selectedColumn;
+  }
+
   global.CodeInAI = Object.freeze({
     TTT_WINS,
     getTicTacToeResult,
@@ -1867,6 +2165,12 @@ button:focus-visible {
     checkOmokWin,
     chooseOmokMove,
     candidateOmokMoves,
+    CONNECT4_ROWS,
+    CONNECT4_COLS,
+    getConnect4ValidColumns,
+    dropConnect4Disc,
+    checkConnect4Win,
+    chooseConnect4Move,
   });
 })(typeof window !== "undefined" ? window : globalThis);
 
@@ -2442,6 +2746,8 @@ button:focus-visible {
   const AI = window.CodeInAI;
   const Chess = window.CodeInChess;
   const OMOK_SIZE = 11;
+  const CONNECT4_ROWS = AI.CONNECT4_ROWS;
+  const CONNECT4_COLS = AI.CONNECT4_COLS;
   const STORAGE_KEY = "codein-ai-booth-stats-v1";
   const SOUND_KEY = "codein-ai-booth-sound-v1";
 
@@ -2451,6 +2757,7 @@ button:focus-visible {
     chooseTtt: document.getElementById("chooseTtt"),
     chooseOmok: document.getElementById("chooseOmok"),
     chooseChess: document.getElementById("chooseChess"),
+    chooseConnect4: document.getElementById("chooseConnect4"),
     brandButton: document.getElementById("brandButton"),
     backButton: document.getElementById("backButton"),
     restartButton: document.getElementById("restartButton"),
@@ -2472,6 +2779,7 @@ button:focus-visible {
     tttBoard: document.getElementById("tttBoard"),
     omokBoard: document.getElementById("omokBoard"),
     chessBoard: document.getElementById("chessBoard"),
+    connect4Board: document.getElementById("connect4Board"),
     humanStone: document.getElementById("humanStone"),
     aiStone: document.getElementById("aiStone"),
     ruleTitle: document.getElementById("ruleTitle"),
@@ -2602,6 +2910,21 @@ button:focus-visible {
       cell.addEventListener("click", () => handleChessClick(index));
       elements.chessBoard.appendChild(cell);
     }
+
+    for (let row = 0; row < CONNECT4_ROWS; row += 1) {
+      for (let col = 0; col < CONNECT4_COLS; col += 1) {
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "connect4-cell";
+        cell.dataset.row = String(row);
+        cell.dataset.col = String(col);
+        cell.setAttribute("role", "gridcell");
+        cell.dataset.baseLabel = `4목 ${row + 1}행 ${col + 1}열`;
+        cell.setAttribute("aria-label", `${col + 1}번째 세로줄에 원판 놓기`);
+        cell.addEventListener("click", () => handleConnect4Click(col));
+        elements.connect4Board.appendChild(cell);
+      }
+    }
   }
 
   function showHome() {
@@ -2634,6 +2957,7 @@ button:focus-visible {
     elements.tttBoard.classList.toggle("active", game === "ttt");
     elements.omokBoard.classList.toggle("active", game === "omok");
     elements.chessBoard.classList.toggle("active", game === "chess");
+    elements.connect4Board.classList.toggle("active", game === "connect4");
 
     if (game === "ttt") {
       state.board = Array(9).fill(null);
@@ -2655,6 +2979,16 @@ button:focus-visible {
       elements.ruleText.textContent = "당신이 흑돌로 선공합니다. 제한 시간은 2분입니다.";
       renderOmok();
       startCountdown(120);
+    } else if (game === "connect4") {
+      state.board = Array.from({ length: CONNECT4_ROWS }, () => Array(CONNECT4_COLS).fill(0));
+      elements.gameKicker.textContent = "7 × 6 CONNECT FOUR CHALLENGE";
+      elements.gameTitle.textContent = "AI 4목";
+      elements.humanStone.textContent = "🔴";
+      elements.aiStone.textContent = "🟡";
+      elements.ruleTitle.innerHTML = "가로·세로·대각선으로<br>4개의 원판을 연결하세요.";
+      elements.ruleText.textContent = "세로줄을 선택하면 원판이 아래부터 쌓입니다. 제한 시간은 90초입니다.";
+      renderConnect4();
+      startCountdown(90);
     } else {
       state.chess = Chess.createInitialState();
       elements.gameKicker.textContent = "8 × 8 CHESS CHALLENGE";
@@ -2710,7 +3044,9 @@ button:focus-visible {
         ? "빈칸을 선택하세요"
         : state.currentGame === "omok"
           ? "교차점에 흑돌을 놓으세요"
-          : "백 기물을 선택하세요";
+          : state.currentGame === "connect4"
+            ? "원판을 떨어뜨릴 세로줄을 선택하세요"
+            : "백 기물을 선택하세요";
     updateBoardAvailability();
   }
 
@@ -2732,6 +3068,11 @@ button:focus-visible {
         const selectablePiece = piece?.[0] === Chess.COLORS.WHITE;
         const selectableTarget = state.chessSelected !== null && targetSquares.has(index);
         cell.disabled = !state.active || state.aiThinking || (!selectablePiece && !selectableTarget);
+      });
+    } else if (state.currentGame === "connect4") {
+      [...elements.connect4Board.children].forEach((cell) => {
+        const col = Number(cell.dataset.col);
+        cell.disabled = !state.active || state.aiThinking || state.board[0][col] !== 0;
       });
     }
   }
@@ -2876,6 +3217,81 @@ button:focus-visible {
     updateBoardAvailability();
   }
 
+  function handleConnect4Click(col) {
+    if (!state.active || state.aiThinking || state.currentGame !== "connect4") return;
+    const row = AI.dropConnect4Disc(state.board, col, 1);
+    if (row === null) return;
+
+    state.lastMove = { row, col, player: 1 };
+    state.moves += 1;
+    playSound("move");
+    renderConnect4();
+
+    const result = AI.checkConnect4Win(state.board, row, col, 1);
+    if (result.won) {
+      finishGame("human", "win", result.cells);
+      return;
+    }
+    if (!AI.getConnect4ValidColumns(state.board).length) {
+      finishGame("draw", "draw", []);
+      return;
+    }
+
+    setTurn("ai");
+    state.aiTimerId = window.setTimeout(makeConnect4AiMove, 420);
+  }
+
+  function makeConnect4AiMove() {
+    if (!state.active || state.currentGame !== "connect4") return;
+    const col = AI.chooseConnect4Move(state.board, 2, 1, { maxDepth: 7 });
+    if (col === null) {
+      finishGame("draw", "draw", []);
+      return;
+    }
+
+    const row = AI.dropConnect4Disc(state.board, col, 2);
+    state.lastMove = { row, col, player: 2 };
+    state.moves += 1;
+    playSound("ai");
+    renderConnect4();
+
+    const result = AI.checkConnect4Win(state.board, row, col, 2);
+    if (result.won) {
+      finishGame("ai", "win", result.cells);
+      return;
+    }
+    if (!AI.getConnect4ValidColumns(state.board).length) {
+      finishGame("draw", "draw", []);
+      return;
+    }
+    setTurn("human");
+  }
+
+  function renderConnect4() {
+    [...elements.connect4Board.children].forEach((cell) => {
+      const row = Number(cell.dataset.row);
+      const col = Number(cell.dataset.col);
+      const value = state.board[row][col];
+      const isLast = state.lastMove?.row === row && state.lastMove?.col === col;
+      const isWinner = state.winningCells.some(([r, c]) => r === row && c === col);
+
+      cell.className = "connect4-cell";
+      if (value === 1) cell.classList.add("human");
+      if (value === 2) cell.classList.add("ai");
+      if (isLast) cell.classList.add("last");
+      if (isWinner) cell.classList.add("win");
+      cell.setAttribute(
+        "aria-label",
+        value === 1
+          ? `${row + 1}행 ${col + 1}열 인간 원판`
+          : value === 2
+            ? `${row + 1}행 ${col + 1}열 AI 원판`
+            : `${col + 1}번째 세로줄에 원판 놓기`,
+      );
+    });
+    updateBoardAvailability();
+  }
+
   function handleChessClick(index) {
     if (
       !state.active
@@ -2992,6 +3408,7 @@ button:focus-visible {
 
     if (state.currentGame === "ttt") renderTicTacToe();
     else if (state.currentGame === "omok") renderOmok();
+    else if (state.currentGame === "connect4") renderConnect4();
     else renderChess();
 
     if (winner === "human") state.stats.human += 1;
@@ -3016,7 +3433,9 @@ button:focus-visible {
       ? "틱택토"
       : state.currentGame === "omok"
         ? "오목"
-        : "체스";
+        : state.currentGame === "connect4"
+          ? "4목"
+          : "체스";
 
     elements.resultModal.className = `result-modal ${isHuman ? "win" : isDraw ? "draw" : "lose"}`;
     elements.resultSymbol.textContent = isHuman ? "★" : isDraw ? "=" : "×";
@@ -3170,6 +3589,7 @@ button:focus-visible {
       if (key === "t") startGame("ttt");
       if (key === "o") startGame("omok");
       if (key === "c") startGame("chess");
+      if (key === "4") startGame("connect4");
       if (key === "f") toggleFullscreen();
       return;
     }
@@ -3182,6 +3602,7 @@ button:focus-visible {
     elements.chooseTtt.addEventListener("click", () => startGame("ttt"));
     elements.chooseOmok.addEventListener("click", () => startGame("omok"));
     elements.chooseChess.addEventListener("click", () => startGame("chess"));
+    elements.chooseConnect4.addEventListener("click", () => startGame("connect4"));
     elements.brandButton.addEventListener("click", showHome);
     elements.backButton.addEventListener("click", showHome);
     elements.restartButton.addEventListener("click", () => startGame(state.currentGame));
