@@ -55,6 +55,22 @@ test("오목 AI는 열린 3목을 미리 차단한다", () => {
   assert.ok(col === 3 || col === 7);
 });
 
+test("오목 AI는 교차 이중 3목 공격을 만든다", () => {
+  const board = Array.from({ length: 11 }, () => Array(11).fill(0));
+  for (const [row, col] of [[5, 4], [5, 6], [4, 5], [6, 5]]) {
+    board[row][col] = 2;
+  }
+  assert.deepEqual(AI.chooseOmokMove(board, 2, 1), [5, 5]);
+});
+
+test("오목 AI는 참가자의 교차 이중 3목을 차단한다", () => {
+  const board = Array.from({ length: 11 }, () => Array(11).fill(0));
+  for (const [row, col] of [[5, 4], [5, 6], [4, 5], [6, 5]]) {
+    board[row][col] = 1;
+  }
+  assert.deepEqual(AI.chooseOmokMove(board, 2, 1), [5, 5]);
+});
+
 test("오목 AI가 비어 있지 않은 칸을 선택하지 않는다", () => {
   const board = Array.from({ length: 11 }, () => Array(11).fill(0));
   board[5][5] = 1;
