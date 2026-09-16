@@ -64,6 +64,8 @@
     moves: 0,
     startedAt: 0,
     deadline: 0,
+    remainingMs: 0,
+    countdownPaused: false,
     timerId: null,
     aiTimerId: null,
     resultTimerId: null,
@@ -273,26 +275,50 @@
   }
 
   function startCountdown(seconds) {
-    state.deadline = Date.now() + seconds * 1000;
+    state.remainingMs = seconds * 1000;
+    state.countdownPaused = false;
+    state.deadline = Date.now() + state.remainingMs;
     updateTimer();
     state.timerId = window.setInterval(updateTimer, 200);
   }
 
+  function pauseCountdown() {
+    if (!state.active || state.countdownPaused) return;
+    state.remainingMs = Math.max(0, state.deadline - Date.now());
+    state.countdownPaused = true;
+    updateTimer();
+  }
+
+  function resumeCountdown() {
+    if (!state.active || !state.countdownPaused) return;
+    state.deadline = Date.now() + state.remainingMs;
+    state.countdownPaused = false;
+    updateTimer();
+  }
+
   function updateTimer() {
     if (!state.active) return;
-    const remaining = Math.max(0, Math.ceil((state.deadline - Date.now()) / 1000));
+    if (!state.countdownPaused) {
+      state.remainingMs = Math.max(0, state.deadline - Date.now());
+    }
+    const remaining = Math.max(0, Math.ceil(state.remainingMs / 1000));
     const minutes = Math.floor(remaining / 60);
     const seconds = remaining % 60;
     elements.timerValue.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     elements.timerBox.classList.toggle("urgent", remaining <= 10);
 
-    if (remaining <= 0) {
+    if (!state.countdownPaused && remaining <= 0) {
       finishGame("ai", "timeout", []);
     }
   }
 
   function setTurn(turn) {
     const isAI = turn === "ai";
+    const pausesForAI = state.currentGame === "omok" || state.currentGame === "chess";
+    if (pausesForAI) {
+      if (isAI) pauseCountdown();
+      else resumeCountdown();
+    }
     state.aiThinking = isAI;
     elements.turnBanner.classList.toggle("ai-turn", isAI);
     elements.turnText.textContent = isAI ? "AI가 다음 수를 계산 중입니다" : "당신의 차례입니다";

@@ -1031,7 +1031,7 @@ button:focus-visible {
   box-shadow: inset -4px -5px 9px rgba(146, 64, 14, 0.25), 0 4px 8px rgba(15, 23, 42, 0.18);
 }
 
-.connect4-cell.last { animation: disc-drop 280ms cubic-bezier(0.22, 1, 0.36, 1); }
+.connect4-cell.last { animation: disc-settle 220ms ease-out; }
 .connect4-cell.win { box-shadow: inset 0 0 0 5px #34d399, 0 0 22px rgba(52, 211, 153, 0.85); }
 
 .match-panel {
@@ -1336,9 +1336,9 @@ button:focus-visible {
   to { opacity: 1; transform: scale(1); }
 }
 
-@keyframes disc-drop {
-  from { opacity: 0.2; transform: translateY(-70%); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes disc-settle {
+  from { filter: brightness(1.35); }
+  to { filter: brightness(1); }
 }
 
 @keyframes winning-cell {
@@ -3304,6 +3304,8 @@ button:focus-visible {
     moves: 0,
     startedAt: 0,
     deadline: 0,
+    remainingMs: 0,
+    countdownPaused: false,
     timerId: null,
     aiTimerId: null,
     resultTimerId: null,
@@ -3513,26 +3515,50 @@ button:focus-visible {
   }
 
   function startCountdown(seconds) {
-    state.deadline = Date.now() + seconds * 1000;
+    state.remainingMs = seconds * 1000;
+    state.countdownPaused = false;
+    state.deadline = Date.now() + state.remainingMs;
     updateTimer();
     state.timerId = window.setInterval(updateTimer, 200);
   }
 
+  function pauseCountdown() {
+    if (!state.active || state.countdownPaused) return;
+    state.remainingMs = Math.max(0, state.deadline - Date.now());
+    state.countdownPaused = true;
+    updateTimer();
+  }
+
+  function resumeCountdown() {
+    if (!state.active || !state.countdownPaused) return;
+    state.deadline = Date.now() + state.remainingMs;
+    state.countdownPaused = false;
+    updateTimer();
+  }
+
   function updateTimer() {
     if (!state.active) return;
-    const remaining = Math.max(0, Math.ceil((state.deadline - Date.now()) / 1000));
+    if (!state.countdownPaused) {
+      state.remainingMs = Math.max(0, state.deadline - Date.now());
+    }
+    const remaining = Math.max(0, Math.ceil(state.remainingMs / 1000));
     const minutes = Math.floor(remaining / 60);
     const seconds = remaining % 60;
     elements.timerValue.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     elements.timerBox.classList.toggle("urgent", remaining <= 10);
 
-    if (remaining <= 0) {
+    if (!state.countdownPaused && remaining <= 0) {
       finishGame("ai", "timeout", []);
     }
   }
 
   function setTurn(turn) {
     const isAI = turn === "ai";
+    const pausesForAI = state.currentGame === "omok" || state.currentGame === "chess";
+    if (pausesForAI) {
+      if (isAI) pauseCountdown();
+      else resumeCountdown();
+    }
     state.aiThinking = isAI;
     elements.turnBanner.classList.toggle("ai-turn", isAI);
     elements.turnText.textContent = isAI ? "AI가 다음 수를 계산 중입니다" : "당신의 차례입니다";
