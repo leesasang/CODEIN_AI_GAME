@@ -22,7 +22,7 @@ STREAMLIT_OVERRIDES = """
   .stApp,
   [data-testid="stAppViewContainer"],
   [data-testid="stMain"] {
-    background: #0b1220 !important;
+    background: #ffffff !important;
   }
 
   .block-container,

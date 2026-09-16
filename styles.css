@@ -1,20 +1,20 @@
 :root {
-  --bg: #0b1220;
-  --bg-2: #101d33;
-  --card: #0f1930;
-  --card-soft: rgba(255, 255, 255, 0.045);
-  --line: rgba(255, 255, 255, 0.14);
-  --text: #e8eefc;
-  --muted: #a8b3cf;
+  --bg: #ffffff;
+  --bg-2: #f1f5f9;
+  --card: #ffffff;
+  --card-soft: rgba(15, 23, 42, 0.05);
+  --line: rgba(15, 23, 42, 0.15);
+  --text: #0f172a;
+  --muted: #475569;
   --blue: #2563eb;
-  --blue-light: #60a5fa;
-  --blue-soft: rgba(37, 99, 235, 0.18);
+  --blue-light: #1d4ed8;
+  --blue-soft: rgba(37, 99, 235, 0.1);
   --green: #34d399;
   --red: #fb7185;
   --yellow: #fbbf24;
   --radius-xl: 28px;
   --radius-lg: 20px;
-  --shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
+  --shadow: 0 22px 60px rgba(15, 23, 42, 0.14);
 }
 
 * {
@@ -34,10 +34,7 @@ body {
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(900px 560px at 8% 8%, rgba(37, 99, 235, 0.25), transparent 60%),
-    radial-gradient(780px 520px at 93% 13%, rgba(96, 165, 250, 0.14), transparent 58%),
-    linear-gradient(150deg, #08101e 0%, var(--bg) 42%, var(--bg-2) 100%);
+  background: #ffffff;
 }
 
 button {
@@ -72,8 +69,8 @@ button:focus-visible {
   opacity: 0.28;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
   background-size: 42px 42px;
   mask-image: linear-gradient(to bottom, black, transparent 84%);
 }
@@ -85,7 +82,7 @@ button:focus-visible {
   justify-content: space-between;
   padding: 0 clamp(22px, 4vw, 68px);
   border-bottom: 1px solid var(--line);
-  background: rgba(7, 14, 28, 0.72);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(22px);
 }
 
@@ -150,7 +147,7 @@ button:focus-visible {
   border: 1px solid rgba(52, 211, 153, 0.22);
   border-radius: 999px;
   background: rgba(52, 211, 153, 0.07);
-  color: #9ef3d2;
+  color: #047857;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
   font-weight: 800;
@@ -186,7 +183,7 @@ button:focus-visible {
 .icon-button.active {
   border-color: rgba(96, 165, 250, 0.55);
   background: var(--blue-soft);
-  color: #fff;
+  color: #1d4ed8;
 }
 
 .screen {
@@ -214,7 +211,7 @@ button:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  color: #b7ccff;
+  color: #1d4ed8;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   font-weight: 800;
@@ -262,10 +259,10 @@ button:focus-visible {
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
-    rgba(15, 25, 48, 0.86);
+    linear-gradient(145deg, rgba(37, 99, 235, 0.055), rgba(255, 255, 255, 0)),
+    #ffffff;
   color: var(--text);
-  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.1);
   cursor: pointer;
   transition: 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -319,7 +316,7 @@ button:focus-visible {
   padding: 7px 10px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.18);
+  background: rgba(15, 23, 42, 0.05);
   color: var(--muted);
   font-size: 10px;
   font-weight: 800;
@@ -341,8 +338,8 @@ button:focus-visible {
 .ttt-preview i {
   display: grid;
   place-items: center;
-  border-right: 2px solid rgba(255, 255, 255, 0.18);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.18);
+  border-right: 2px solid rgba(15, 23, 42, 0.24);
+  border-bottom: 2px solid rgba(15, 23, 42, 0.24);
   font-style: normal;
   font-size: 33px;
   font-weight: 700;
@@ -361,22 +358,22 @@ button:focus-visible {
 }
 
 .ttt-preview .o {
-  color: #fff;
+  color: #0f172a;
 }
 
 .omok-preview {
   position: relative;
   display: block;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid #cbd5e1;
   border-radius: 16px;
   transform: rotate(2deg);
-  background-color: #d9a34b;
+  background-color: #f8fafc;
   background-image:
-    linear-gradient(rgba(74, 42, 13, 0.42) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(74, 42, 13, 0.42) 1px, transparent 1px);
+    linear-gradient(rgba(71, 85, 105, 0.46) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(71, 85, 105, 0.46) 1px, transparent 1px);
   background-size: 22px 22px;
   background-position: 10px 10px;
-  box-shadow: inset 0 0 25px rgba(88, 45, 8, 0.35);
+  box-shadow: inset 0 0 25px rgba(37, 99, 235, 0.06);
 }
 
 .omok-preview i {
@@ -406,17 +403,17 @@ button:focus-visible {
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(2, 1fr);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid #cbd5e1;
   border-radius: 15px;
   transform: rotate(-2deg);
-  background: #334155;
-  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+  background: #e2e8f0;
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
 }
 
 .chess-preview i {
   display: grid;
   place-items: center;
-  background: #9fb6d4;
+  background: #eff6ff;
   color: #111827;
   font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
   font-size: 27px;
@@ -428,15 +425,15 @@ button:focus-visible {
 .chess-preview i:nth-child(even),
 .chess-preview i:nth-child(5),
 .chess-preview i:nth-child(7) {
-  background: #415777;
-  color: #f8fafc;
+  background: #bfdbfe;
+  color: #0f172a;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
 }
 
 .chess-preview i:nth-child(6),
 .chess-preview i:nth-child(8) {
-  background: #9fb6d4;
-  color: #f8fafc;
+  background: #eff6ff;
+  color: #0f172a;
 }
 
 .card-copy {
@@ -462,7 +459,7 @@ button:focus-visible {
   justify-content: space-between;
   padding-top: 16px;
   border-top: 1px solid var(--line);
-  color: #bed3ff;
+  color: #1d4ed8;
   font-size: 13px;
   font-weight: 800;
 }
@@ -485,8 +482,8 @@ button:focus-visible {
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
   background:
-    radial-gradient(280px 200px at 50% 35%, rgba(37, 99, 235, 0.18), transparent 70%),
-    rgba(7, 14, 28, 0.72);
+    radial-gradient(280px 200px at 50% 35%, rgba(37, 99, 235, 0.1), transparent 70%),
+    #ffffff;
 }
 
 .score-title {
@@ -604,7 +601,7 @@ button:focus-visible {
   border: 1px solid var(--line);
   border-bottom-width: 3px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(15, 23, 42, 0.04);
   color: var(--muted);
   font: 700 10px ui-monospace, monospace;
 }
@@ -626,7 +623,7 @@ button:focus-visible {
   padding: 10px 13px;
   border: 1px solid var(--line);
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.035);
+  background: rgba(15, 23, 42, 0.04);
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
@@ -635,7 +632,7 @@ button:focus-visible {
 
 .back-button:hover {
   border-color: rgba(96, 165, 250, 0.5);
-  color: #fff;
+  color: #1d4ed8;
 }
 
 .game-heading-copy {
@@ -661,7 +658,7 @@ button:focus-visible {
   text-align: right;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: rgba(0, 0, 0, 0.17);
+  background: #ffffff;
 }
 
 .timer-box span {
@@ -679,7 +676,7 @@ button:focus-visible {
 .timer-box.urgent {
   border-color: rgba(251, 113, 133, 0.45);
   background: rgba(251, 113, 133, 0.08);
-  color: #fecdd3;
+  color: #be123c;
   animation: timer-pulse 1s infinite;
 }
 
@@ -698,8 +695,8 @@ button:focus-visible {
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
   background:
-    radial-gradient(520px 380px at 50% 55%, rgba(37, 99, 235, 0.13), transparent 73%),
-    rgba(15, 25, 48, 0.78);
+    radial-gradient(520px 380px at 50% 55%, rgba(37, 99, 235, 0.08), transparent 73%),
+    #ffffff;
   box-shadow: var(--shadow);
 }
 
@@ -762,8 +759,8 @@ button:focus-visible {
   overflow: hidden;
   border: 1px solid rgba(96, 165, 250, 0.28);
   border-radius: 30px;
-  background: rgba(5, 11, 24, 0.52);
-  box-shadow: inset 0 0 70px rgba(37, 99, 235, 0.08), 0 26px 60px rgba(0, 0, 0, 0.35);
+  background: #f8fafc;
+  box-shadow: inset 0 0 70px rgba(37, 99, 235, 0.05), 0 22px 50px rgba(15, 23, 42, 0.13);
 }
 
 .ttt-board.active,
@@ -780,7 +777,7 @@ button:focus-visible {
   border-right: 1px solid rgba(96, 165, 250, 0.72);
   border-bottom: 1px solid rgba(96, 165, 250, 0.72);
   background: transparent;
-  color: #fff;
+  color: #0f172a;
   font-size: clamp(62px, 8vw, 96px);
   font-weight: 300;
   cursor: pointer;
@@ -791,7 +788,7 @@ button:focus-visible {
 .ttt-cell:nth-child(n + 7) { border-bottom: 0; }
 .ttt-cell:not(:disabled):hover { background: rgba(37, 99, 235, 0.12); }
 .ttt-cell.x { color: var(--blue-light); text-shadow: 0 0 30px rgba(37, 99, 235, 0.45); }
-.ttt-cell.o { color: #f8fafc; text-shadow: 0 0 30px rgba(255, 255, 255, 0.2); }
+.ttt-cell.o { color: #0f172a; text-shadow: 0 0 24px rgba(15, 23, 42, 0.12); }
 .ttt-cell.win { background: rgba(52, 211, 153, 0.13); animation: winning-cell 850ms infinite alternate; }
 .ttt-cell.pop { animation: ttt-pop 260ms cubic-bezier(0.22, 1, 0.36, 1); }
 
@@ -805,10 +802,10 @@ button:focus-visible {
   grid-template-rows: repeat(11, var(--cell-size));
   place-content: center;
   padding: 15px;
-  border: 1px solid #e7b961;
+  border: 1px solid #cbd5e1;
   border-radius: 19px;
-  background: linear-gradient(145deg, #e0ae57, #c98e32);
-  box-shadow: inset 0 0 35px rgba(101, 54, 12, 0.34), 0 24px 60px rgba(0, 0, 0, 0.38);
+  background: linear-gradient(145deg, #ffffff, #eaf2ff);
+  box-shadow: inset 0 0 35px rgba(37, 99, 235, 0.06), 0 22px 50px rgba(15, 23, 42, 0.14);
 }
 
 .omok-cell {
@@ -826,7 +823,7 @@ button:focus-visible {
   position: absolute;
   z-index: 0;
   content: "";
-  background: rgba(73, 41, 13, 0.58);
+  background: rgba(71, 85, 105, 0.58);
 }
 
 .omok-cell::before {
@@ -880,7 +877,7 @@ button:focus-visible {
 
 .stone.white {
   background: radial-gradient(circle at 34% 28%, #fff 0%, #e8edf5 50%, #aeb8c8 100%);
-  box-shadow: inset -3px -5px 8px rgba(96, 107, 126, 0.28), 0 4px 8px rgba(43, 22, 4, 0.5);
+  box-shadow: inset -3px -5px 8px rgba(96, 107, 126, 0.28), 0 0 0 1px rgba(15, 23, 42, 0.2), 0 4px 8px rgba(15, 23, 42, 0.22);
 }
 
 .stone.last::after {
@@ -906,10 +903,10 @@ button:focus-visible {
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
   overflow: hidden;
-  border: 7px solid #17233a;
+  border: 7px solid #cbd5e1;
   border-radius: 17px;
-  background: #17233a;
-  box-shadow: 0 26px 65px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(139, 164, 207, 0.35);
+  background: #cbd5e1;
+  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(148, 163, 184, 0.45);
 }
 
 .chess-cell {
@@ -919,7 +916,7 @@ button:focus-visible {
   min-width: 0;
   padding: 0;
   border: 0;
-  background: #b7c8df;
+  background: #eff6ff;
   color: #0c1423;
   font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
   font-size: clamp(30px, 4.3vw, 48px);
@@ -928,7 +925,7 @@ button:focus-visible {
   transition: filter 120ms ease, box-shadow 120ms ease;
 }
 
-.chess-cell.dark { background: #526b8e; }
+.chess-cell.dark { background: #bfdbfe; }
 .chess-cell.white-piece { color: #f8fafc; text-shadow: 0 2px 2px rgba(10, 18, 32, 0.9), 0 0 1px #0b1220; }
 .chess-cell.black-piece { color: #0a101d; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.32); }
 .chess-cell.last-move { box-shadow: inset 0 0 0 999px rgba(251, 191, 36, 0.24); }
@@ -963,7 +960,7 @@ button:focus-visible {
 .rule-card {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background: rgba(15, 25, 48, 0.8);
+  background: #ffffff;
 }
 
 .versus-card {
@@ -985,14 +982,14 @@ button:focus-visible {
   border: 1px solid rgba(96, 165, 250, 0.38);
   border-radius: 14px;
   background: var(--blue-soft);
-  color: #b9d2ff;
+  color: #1d4ed8;
   font-weight: 900;
 }
 
 .ai-player .avatar {
   border-color: rgba(251, 191, 36, 0.28);
   background: rgba(251, 191, 36, 0.08);
-  color: #fde68a;
+  color: #b45309;
   font-size: 12px;
 }
 
@@ -1021,7 +1018,7 @@ button:focus-visible {
 }
 
 .ai-player > b {
-  color: #fff;
+  color: #0f172a;
 }
 
 .versus-line {
@@ -1102,13 +1099,13 @@ button:focus-visible {
 
 .secondary-button {
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(15, 23, 42, 0.04);
   color: var(--muted);
 }
 
 .secondary-button:hover {
   border-color: rgba(96, 165, 250, 0.5);
-  color: #fff;
+  color: #1d4ed8;
 }
 
 /* Result */
@@ -1134,9 +1131,9 @@ button:focus-visible {
   border: 1px solid rgba(96, 165, 250, 0.36);
   border-radius: 30px;
   background:
-    radial-gradient(360px 240px at 50% 0%, rgba(37, 99, 235, 0.25), transparent 68%),
-    #0d172b;
-  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.58);
+    radial-gradient(360px 240px at 50% 0%, rgba(37, 99, 235, 0.12), transparent 68%),
+    #ffffff;
+  box-shadow: 0 32px 100px rgba(15, 23, 42, 0.28);
   animation: modal-in 380ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -1149,7 +1146,7 @@ button:focus-visible {
   border: 1px solid rgba(96, 165, 250, 0.48);
   border-radius: 22px;
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.26), rgba(96, 165, 250, 0.08));
-  color: #a9c8ff;
+  color: #1d4ed8;
   font-size: 34px;
   box-shadow: 0 18px 40px rgba(37, 99, 235, 0.2);
 }
@@ -1157,14 +1154,14 @@ button:focus-visible {
 .result-modal.win .result-symbol {
   border-color: rgba(52, 211, 153, 0.55);
   background: rgba(52, 211, 153, 0.1);
-  color: #a7f3d0;
+  color: #047857;
   box-shadow: 0 18px 40px rgba(52, 211, 153, 0.17);
 }
 
 .result-modal.lose .result-symbol {
   border-color: rgba(251, 113, 133, 0.42);
   background: rgba(251, 113, 133, 0.08);
-  color: #fecdd3;
+  color: #be123c;
 }
 
 .result-kicker {
@@ -1204,7 +1201,7 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   padding: 13px 8px;
-  background: rgba(8, 16, 31, 0.93);
+  background: #f8fafc;
 }
 
 .result-stats span {
