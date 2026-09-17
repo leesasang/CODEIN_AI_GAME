@@ -832,13 +832,13 @@ button:focus-visible {
 .ttt-cell.pop { animation: ttt-pop 260ms cubic-bezier(0.22, 1, 0.36, 1); }
 
 .omok-board {
-  --cell-size: clamp(28px, 3vw, 38px);
+  --cell-size: clamp(21px, 2.2vw, 28px);
   position: relative;
-  width: calc(var(--cell-size) * 11 + 30px);
-  height: calc(var(--cell-size) * 11 + 30px);
+  width: calc(var(--cell-size) * 15 + 30px);
+  height: calc(var(--cell-size) * 15 + 30px);
   display: none;
-  grid-template-columns: repeat(11, var(--cell-size));
-  grid-template-rows: repeat(11, var(--cell-size));
+  grid-template-columns: repeat(15, var(--cell-size));
+  grid-template-rows: repeat(15, var(--cell-size));
   place-content: center;
   padding: 15px;
   border: 1px solid #cbd5e1;
@@ -1396,7 +1396,7 @@ button:focus-visible {
   .arena-layout { grid-template-columns: 1fr 280px; }
   .arena-card { min-height: 555px; }
   .board-stage { min-height: 455px; }
-  .omok-board { --cell-size: clamp(27px, 3.5vw, 35px); }
+  .omok-board { --cell-size: clamp(20px, 2.55vw, 26px); }
 }
 
 @media (max-width: 800px) {
@@ -1431,7 +1431,7 @@ button:focus-visible {
   .arena-card { min-height: 0; padding: 12px; }
   .board-stage { min-height: 390px; }
   .ttt-board { width: min(360px, 86vw); border-radius: 22px; }
-  .omok-board { --cell-size: min(7.55vw, 32px); }
+  .omok-board { --cell-size: min(5vw, 24px); }
   .chess-board { width: min(360px, 86vw); border-width: 5px; }
   .connect4-board { width: min(430px, 90vw); border-radius: 18px; }
   .match-panel { grid-template-columns: 1fr; }
@@ -1454,7 +1454,7 @@ button:focus-visible {
   .arena-card { min-height: 520px; }
   .board-stage { min-height: 430px; padding-top: 8px; }
   .ttt-board { width: 360px; }
-  .omok-board { --cell-size: 33px; }
+  .omok-board { --cell-size: 24px; }
   .chess-board { width: 390px; }
   .connect4-board { width: 450px; }
 }
@@ -3294,7 +3294,7 @@ button:focus-visible {
 
   const AI = window.CodeInAI;
   const Chess = window.CodeInChess;
-  const OMOK_SIZE = 11;
+  const OMOK_SIZE = 15;
   const CONNECT4_ROWS = AI.CONNECT4_ROWS;
   const CONNECT4_COLS = AI.CONNECT4_COLS;
   const STORAGE_KEY = "codein-ai-booth-stats-v1";
@@ -3561,7 +3561,7 @@ button:focus-visible {
       renderTicTacToe();
     } else if (game === "omok") {
       state.board = Array.from({ length: OMOK_SIZE }, () => Array(OMOK_SIZE).fill(0));
-      elements.gameKicker.textContent = "11 × 11 GOMOK CHALLENGE";
+      elements.gameKicker.textContent = "15 × 15 GOMOK CHALLENGE";
       elements.gameTitle.textContent = "AI 오목";
       elements.humanStone.textContent = "●";
       elements.aiStone.textContent = "○";
