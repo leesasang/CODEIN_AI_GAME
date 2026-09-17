@@ -47,7 +47,7 @@
               <button class="game-card ttt-card" id="chooseTtt" type="button">
                 <span class="card-topline">
                   <span class="game-number">01</span>
-                  <span class="time-chip">약 30초</span>
+                  <span class="time-chip">시간 선택</span>
                 </span>
                 <span class="preview ttt-preview" aria-hidden="true">
                   <i class="x">×</i><i></i><i class="o">○</i>
@@ -63,7 +63,7 @@
               <button class="game-card omok-card" id="chooseOmok" type="button">
                 <span class="card-topline">
                   <span class="game-number">02</span>
-                  <span class="time-chip">제한 2분</span>
+                  <span class="time-chip">시간 선택</span>
                 </span>
                 <span class="preview omok-preview" aria-hidden="true">
                   <i class="black p1"></i><i class="white p2"></i><i class="black p3"></i>
@@ -78,7 +78,7 @@
               <button class="game-card chess-card" id="chooseChess" type="button">
                 <span class="card-topline">
                   <span class="game-number">03</span>
-                  <span class="time-chip">제한 5분</span>
+                  <span class="time-chip">시간 선택</span>
                 </span>
                 <span class="preview chess-preview" aria-hidden="true">
                   <i>♜</i><i>♞</i><i>♝</i><i>♛</i>
@@ -93,7 +93,7 @@
               <button class="game-card connect4-card" id="chooseConnect4" type="button">
                 <span class="card-topline">
                   <span class="game-number">04</span>
-                  <span class="time-chip">제한 90초</span>
+                  <span class="time-chip">시간 선택</span>
                 </span>
                 <span class="preview connect4-preview" aria-hidden="true">
                   <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
@@ -209,6 +209,19 @@
           <button class="secondary-button" id="changeGameButton" type="button">다른 게임 선택</button>
         </div>
         <small class="result-tip">Enter: 다음 참가자 · Esc: 게임 선택</small>
+      </div>
+    </div>
+
+    <div class="result-overlay" id="timeSelectOverlay" role="dialog" aria-modal="true" aria-labelledby="timeSelectTitle" aria-describedby="timeSelectGame" hidden>
+      <div class="time-select-modal">
+        <p id="timeSelectGame">AI 틱택토</p>
+        <h2 id="timeSelectTitle">제한 시간을 선택하세요</h2>
+        <div class="time-options">
+          <button class="secondary-button" id="chooseTime2" type="button">2분</button>
+          <button class="secondary-button" id="chooseTime5" type="button">5분</button>
+          <button class="secondary-button" id="chooseTime10" type="button">10분</button>
+        </div>
+        <button class="text-button" id="cancelTimeSelection" type="button">취소</button>
       </div>
     </div>
 

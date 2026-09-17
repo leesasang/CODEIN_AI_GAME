@@ -8,6 +8,8 @@
   const CONNECT4_COLS = AI.CONNECT4_COLS;
   const STORAGE_KEY = "codein-ai-booth-stats-v1";
   const SOUND_KEY = "codein-ai-booth-sound-v1";
+  const GAME_NAMES = { ttt: "AI 틱택토", omok: "AI 오목", chess: "AI 체스", connect4: "AI 4목" };
+  const TIME_LIMITS = [120, 300, 600];
 
   const elements = {
     homeScreen: document.getElementById("homeScreen"),
@@ -53,11 +55,19 @@
     resultMoves: document.getElementById("resultMoves"),
     nextPlayerButton: document.getElementById("nextPlayerButton"),
     changeGameButton: document.getElementById("changeGameButton"),
+    timeSelectOverlay: document.getElementById("timeSelectOverlay"),
+    timeSelectGame: document.getElementById("timeSelectGame"),
+    chooseTime2: document.getElementById("chooseTime2"),
+    chooseTime5: document.getElementById("chooseTime5"),
+    chooseTime10: document.getElementById("chooseTime10"),
+    cancelTimeSelection: document.getElementById("cancelTimeSelection"),
     confettiCanvas: document.getElementById("confettiCanvas"),
   };
 
   const state = {
     currentGame: null,
+    pendingGame: null,
+    timeLimitSeconds: 120,
     board: [],
     active: false,
     aiThinking: false,
@@ -189,6 +199,8 @@
 
   function showHome() {
     clearActiveTimers();
+    elements.timeSelectOverlay.hidden = true;
+    state.pendingGame = null;
     state.active = false;
     state.aiThinking = false;
     state.currentGame = null;
@@ -199,9 +211,37 @@
     elements.chooseTtt.focus({ preventScroll: true });
   }
 
-  function startGame(game) {
+  function requestGameStart(game) {
+    if (!Object.prototype.hasOwnProperty.call(GAME_NAMES, game)) return;
+    state.pendingGame = game;
+    elements.timeSelectGame.textContent = GAME_NAMES[game];
+    elements.timeSelectOverlay.hidden = false;
+    elements.chooseTime2.focus({ preventScroll: true });
+  }
+
+  function cancelTimeSelection() {
+    const game = state.pendingGame;
+    state.pendingGame = null;
+    elements.timeSelectOverlay.hidden = true;
+    const returnButton = !elements.resultOverlay.hidden
+      ? elements.nextPlayerButton
+      : { ttt: elements.chooseTtt, omok: elements.chooseOmok, chess: elements.chooseChess, connect4: elements.chooseConnect4 }[game];
+    returnButton?.focus({ preventScroll: true });
+  }
+
+  function selectGameTime(seconds) {
+    if (!state.pendingGame) return;
+    startGame(state.pendingGame, seconds);
+    elements.backButton.focus({ preventScroll: true });
+  }
+
+  function startGame(game, seconds = state.timeLimitSeconds) {
+    if (!Object.prototype.hasOwnProperty.call(GAME_NAMES, game) || !TIME_LIMITS.includes(seconds)) return;
     clearActiveTimers();
     hideResult();
+    elements.timeSelectOverlay.hidden = true;
+    state.pendingGame = null;
+    state.timeLimitSeconds = seconds;
     state.currentGame = game;
     state.active = true;
     state.aiThinking = false;
@@ -226,9 +266,8 @@
       elements.humanStone.textContent = "×";
       elements.aiStone.textContent = "○";
       elements.ruleTitle.innerHTML = "가로·세로·대각선으로<br>3칸을 먼저 연결하세요.";
-      elements.ruleText.textContent = "당신이 선공입니다. 파란색 X로 플레이합니다.";
+      elements.ruleText.textContent = `당신이 선공입니다. 파란색 X로 플레이합니다. 제한 시간은 ${seconds / 60}분입니다.`;
       renderTicTacToe();
-      startCountdown(45);
     } else if (game === "omok") {
       state.board = Array.from({ length: OMOK_SIZE }, () => Array(OMOK_SIZE).fill(0));
       elements.gameKicker.textContent = "11 × 11 GOMOK CHALLENGE";
@@ -236,9 +275,8 @@
       elements.humanStone.textContent = "●";
       elements.aiStone.textContent = "○";
       elements.ruleTitle.innerHTML = "가로·세로·대각선으로<br>5개의 돌을 연결하세요.";
-      elements.ruleText.textContent = "당신이 흑돌로 선공합니다. 제한 시간은 2분입니다.";
+      elements.ruleText.textContent = `당신이 흑돌로 선공합니다. 제한 시간은 ${seconds / 60}분입니다.`;
       renderOmok();
-      startCountdown(120);
     } else if (game === "connect4") {
       state.board = Array.from({ length: CONNECT4_ROWS }, () => Array(CONNECT4_COLS).fill(0));
       elements.gameKicker.textContent = "7 × 6 CONNECT FOUR CHALLENGE";
@@ -246,9 +284,8 @@
       elements.humanStone.textContent = "🔴";
       elements.aiStone.textContent = "🟡";
       elements.ruleTitle.innerHTML = "가로·세로·대각선으로<br>4개의 원판을 연결하세요.";
-      elements.ruleText.textContent = "세로줄을 선택하면 원판이 아래부터 쌓입니다. 제한 시간은 90초입니다.";
+      elements.ruleText.textContent = `세로줄을 선택하면 원판이 아래부터 쌓입니다. 제한 시간은 ${seconds / 60}분입니다.`;
       renderConnect4();
-      startCountdown(90);
     } else {
       state.chess = Chess.createInitialState();
       elements.gameKicker.textContent = "8 × 8 CHESS CHALLENGE";
@@ -256,11 +293,11 @@
       elements.humanStone.textContent = "♙";
       elements.aiStone.textContent = "♟";
       elements.ruleTitle.innerHTML = "AI의 킹을<br>체크메이트하세요.";
-      elements.ruleText.textContent = "당신이 백으로 선공합니다. 제한 시간은 5분입니다.";
+      elements.ruleText.textContent = `당신이 백으로 선공합니다. 제한 시간은 ${seconds / 60}분입니다.`;
       renderChess();
-      startCountdown(300);
     }
 
+    startCountdown(seconds);
     setTurn("human");
     playSound("start");
   }
@@ -863,17 +900,38 @@
 
   function handleKeyboard(event) {
     const key = event.key.toLowerCase();
+    if (!elements.timeSelectOverlay.hidden) {
+      if (key === "escape") {
+        event.preventDefault();
+        cancelTimeSelection();
+      } else if (key === "tab") {
+        const controls = [elements.chooseTime2, elements.chooseTime5, elements.chooseTime10, elements.cancelTimeSelection];
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+      return;
+    }
     if (!elements.resultOverlay.hidden) {
-      if (key === "enter") startGame(state.currentGame);
+      if (key === "enter") {
+        event.preventDefault();
+        requestGameStart(state.currentGame);
+      }
       if (key === "escape") showHome();
       return;
     }
 
     if (elements.homeScreen.classList.contains("active")) {
-      if (key === "t") startGame("ttt");
-      if (key === "o") startGame("omok");
-      if (key === "c") startGame("chess");
-      if (key === "4") startGame("connect4");
+      if (key === "t") requestGameStart("ttt");
+      if (key === "o") requestGameStart("omok");
+      if (key === "c") requestGameStart("chess");
+      if (key === "4") requestGameStart("connect4");
       if (key === "f") toggleFullscreen();
       return;
     }
@@ -883,14 +941,18 @@
   }
 
   function bindEvents() {
-    elements.chooseTtt.addEventListener("click", () => startGame("ttt"));
-    elements.chooseOmok.addEventListener("click", () => startGame("omok"));
-    elements.chooseChess.addEventListener("click", () => startGame("chess"));
-    elements.chooseConnect4.addEventListener("click", () => startGame("connect4"));
+    elements.chooseTtt.addEventListener("click", () => requestGameStart("ttt"));
+    elements.chooseOmok.addEventListener("click", () => requestGameStart("omok"));
+    elements.chooseChess.addEventListener("click", () => requestGameStart("chess"));
+    elements.chooseConnect4.addEventListener("click", () => requestGameStart("connect4"));
+    elements.chooseTime2.addEventListener("click", () => selectGameTime(120));
+    elements.chooseTime5.addEventListener("click", () => selectGameTime(300));
+    elements.chooseTime10.addEventListener("click", () => selectGameTime(600));
+    elements.cancelTimeSelection.addEventListener("click", cancelTimeSelection);
     elements.brandButton.addEventListener("click", showHome);
     elements.backButton.addEventListener("click", showHome);
     elements.restartButton.addEventListener("click", () => startGame(state.currentGame));
-    elements.nextPlayerButton.addEventListener("click", () => startGame(state.currentGame));
+    elements.nextPlayerButton.addEventListener("click", () => requestGameStart(state.currentGame));
     elements.changeGameButton.addEventListener("click", showHome);
     elements.fullscreenButton.addEventListener("click", toggleFullscreen);
     elements.soundButton.addEventListener("click", toggleSound);

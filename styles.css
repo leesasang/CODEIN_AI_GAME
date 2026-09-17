@@ -1299,6 +1299,44 @@ button:focus-visible {
   font-size: 9px;
 }
 
+/* Game entry time selection */
+.time-select-modal {
+  width: min(440px, 100%);
+  padding: 28px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.time-select-modal > p {
+  margin: 0 0 8px;
+  color: var(--blue-light);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.time-select-modal h2 {
+  margin: 0;
+  font-size: clamp(18px, 4vw, 24px);
+  letter-spacing: -0.04em;
+}
+
+.time-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 24px 0 18px;
+}
+
+.time-options .secondary-button {
+  min-height: 60px;
+  padding: 0 8px;
+  color: var(--blue-light);
+  font-size: 18px;
+}
+
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.55; transform: scale(0.82); }
